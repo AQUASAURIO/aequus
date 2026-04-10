@@ -1,0 +1,137 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== USERS & AUTH ====================
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  name          String
+  company       String?
+  role          String   @default("USER") // ADMIN, MANAGER, USER
+  planId        String?
+  plan          Plan?    @relation(fields: [planId], references: [id])
+  valuationCount Int     @default(0)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  properties    Property[]
+  apiKeys       ApiKey[]
+  importJobs    ImportJob[]
+}
+
+model Plan {
+  id              String   @id @default(cuid())
+  name            String   @unique
+  description     String
+  priceMonthly    Float
+  priceAnnual     Float
+  maxValuations   Int      // -1 = unlimited
+  maxProperties   Int      // -1 = unlimited
+  features        String   // JSON array of feature names
+  stripePriceId   String?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  users           User[]
+}
+
+model ApiKey {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  key       String   @unique
+  name      String
+  isActive  Boolean  @default(true)
+  lastUsed  DateTime?
+  createdAt DateTime @default(now())
+  expiresAt DateTime?
+}
+
+// ==================== PROPERTIES ====================
+
+model Property {
+  id              String     @id @default(cuid())
+  userId          String?
+  user            User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  name            String
+  address         String
+  country         String   @default("DO")
+  city            String
+  state           String
+  zipCode         String
+  propertyType    String     // OFICINA, RETAIL, INDUSTRIAL, BODEGA, TERRENO, MIXTO, HOTEL, RESTAURANTE
+  totalArea       Float      // m²
+  constructedArea Float?
+  lotArea         Float?
+  floors          Int        @default(1)
+  yearBuilt       Int?
+  parkingSpaces   Int        @default(0)
+  bathrooms       Int        @default(1)
+  currentUse      String?
+  buildingCondition String   // EXCELENTE, BUENO, REGULAR, MALO, EN_REMODELACION
+  features        String     // JSON string of features array
+  coordinates     String?    // lat,lng
+  imageUrl        String?
+  imageUrls       String?    // JSON array of image URLs
+  notes           String?
+  status          String     @default("BORRADOR") // BORRADOR, VALUADO, EN_REVISION
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  valuations      Valuation[]
+}
+
+// ==================== VALUATIONS ====================
+
+model Valuation {
+  id              String     @id @default(cuid())
+  propertyId      String
+  property        Property   @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  // Valuation results
+  marketValue     Float      // Valor de mercado estimado
+  pricePerSqm     Float?     // Precio por m²
+  rentalValue     Float?     // Valor de renta mensual estimado
+  capRate         Float?     // Tasa de capitalización
+  confidence      Float      @default(0.8) // 0-1 confidence level
+  valuationMethod String     // COMPARABLE, INGRESO, COSTO, HIBRIDO
+
+  // Comparable properties (JSON)
+  comparablesData String?    // JSON array of comparable properties
+
+  // AI Analysis
+  aiAnalysis      String?    // AI-generated analysis text
+  aiRecommendations String?  // AI-generated recommendations
+  riskFactors     String?    // JSON array of risk factors
+  marketTrends    String?    // JSON of market trend data
+
+  // Metadata
+  valuatedAt      DateTime   @default(now())
+  expiresAt       DateTime?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+}
+
+// ==================== IMPORT JOBS ====================
+
+model ImportJob {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  filename    String
+  status      String   @default("PENDING") // PENDING, PROCESSING, COMPLETED, FAILED
+  totalRows   Int      @default(0)
+  processed   Int      @default(0)
+  errors      String?  // JSON array of error messages
+  createdAt   DateTime @default(now())
+  completedAt DateTime?
+}
