@@ -53,32 +53,32 @@ const recentProperties: any[] = [];
 const stats = [
   {
     title: "Propiedades Valuadas",
-    value: "24",
-    change: "+12%",
+    value: "0",
+    change: "0%",
     trend: "up" as const,
     icon: Building2,
     description: "este mes",
   },
   {
     title: "Valor Total Portafolio",
-    value: "$425.8M",
-    change: "+8.2%",
+    value: "$0.0",
+    change: "0%",
     trend: "up" as const,
     icon: DollarSign,
     description: "vs. mes anterior",
   },
   {
     title: "Precio Promedio/m²",
-    value: "$18,450",
-    change: "-2.1%",
-    trend: "down" as const,
+    value: "$0",
+    change: "0%",
+    trend: "up" as const,
     icon: TrendingUp,
     description: "promedio general",
   },
   {
     title: "Valuaciones Pendientes",
-    value: "7",
-    change: "+3",
+    value: "0",
+    change: "0",
     trend: "up" as const,
     icon: FileCheck,
     description: "requieren atención",
@@ -88,7 +88,7 @@ const stats = [
 export function DashboardView() {
   const { navigateToProperty } = useAppStore();
   const mounted = useSyncExternalStore(
-    () => () => {},
+    () => () => { },
     () => true,
     () => false
   );
@@ -306,13 +306,7 @@ export function DashboardView() {
               className="h-[220px] w-full"
             >
               <BarChart
-                data={[
-                  { zona: "Piantini", precio: 11500 },
-                  { zona: "Naco", precio: 10200 },
-                  { zona: "Gazcue", precio: 8900 },
-                  { zona: "Ens. Luperón", precio: 7200 },
-                  { zona: "Z. Franca STI", precio: 3500 },
-                ]}
+                data={[]}
                 margin={{ top: 5, right: 10, left: 0, bottom: 0 }}
               >
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
