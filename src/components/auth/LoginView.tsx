@@ -202,12 +202,12 @@ export function LoginView() {
                             </Button>
                         </div>
 
-                        <p className="text-center text-sm text-muted-foreground mt-4">
+                        <p className="text-center text-sm text-zinc-500 mt-4">
                             {isSignUp ? "¿Ya tienes una cuenta?" : "¿No tienes una cuenta?"}{" "}
                             <button
                                 type="button"
                                 onClick={() => setIsSignUp(!isSignUp)}
-                                className="font-medium text-emerald-500 hover:text-emerald-400 underline-offset-4 hover:underline"
+                                className="font-medium text-emerald-400 hover:text-emerald-300 underline-offset-4 hover:underline"
                             >
                                 {isSignUp ? "Inicia sesión" : "Regístrate gratis"}
                             </button>
@@ -215,10 +215,10 @@ export function LoginView() {
                     </CardFooter>
                 </Card>
 
-                <p className="mt-6 text-center text-xs text-muted-foreground leading-relaxed">
+                <p className="mt-6 text-center text-xs text-zinc-500 leading-relaxed">
                     Al continuar, aceptas nuestros{" "}
-                    <a href="#" className="underline hover:text-foreground">Términos de Servicio</a> y{" "}
-                    <a href="#" className="underline hover:text-foreground">Política de Privacidad</a>.
+                    <a href="#" className="underline hover:text-white">Términos de Servicio</a> y{" "}
+                    <a href="#" className="underline hover:text-white">Política de Privacidad</a>.
                 </p>
             </motion.div>
         </div>
