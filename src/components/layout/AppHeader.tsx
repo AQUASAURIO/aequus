@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { createClient } from "@supabase/supabase-js";
 import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { Bell, Search, Menu, Sparkles, LogOut, User } from "lucide-react";
@@ -30,7 +30,10 @@ const viewTitles: Record<string, string> = {
 export function AppHeader() {
   const { currentView, sidebarOpen, toggleSidebar, toggleAiChat, aiChatOpen, aiChatMessages } = useAppStore();
   const [user, setUser] = useState<any>(null);
-  const supabase = createClientComponentClient();
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
   useEffect(() => {
     const getUser = async () => {

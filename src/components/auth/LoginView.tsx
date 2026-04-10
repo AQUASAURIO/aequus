@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { createClient } from "@supabase/supabase-js";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Building2, Mail, Lock, Loader2, ArrowRight } from "lucide-react";
 import Image from "next/image";
 
@@ -16,7 +16,10 @@ export function LoginView() {
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [isSignUp, setIsSignUp] = useState(false);
-    const supabase = createClientComponentClient();
+    const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
     const { toast } = useToast();
 
     const handleAuth = async (e: React.FormEvent) => {
