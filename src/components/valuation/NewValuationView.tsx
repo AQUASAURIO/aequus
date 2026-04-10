@@ -167,21 +167,53 @@ export function NewValuationView() {
     setIsValuating(true);
     const values = form.getValues();
     try {
-      const res = await fetch("/api/valuations", {
+      // 1. Create property first to get ID
+      const propRes = await fetch("/api/properties", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...values, features: selectedFeatures }),
       });
 
-      if (!res.ok) {
-        throw new Error(`API Error: ${res.status}`);
-      }
+      if (!propRes.ok) throw new Error("Error al crear la propiedad");
+      const property = await propRes.json();
+      const propertyId = property.id;
 
-      const data = await res.json();
-      setValuationResult(data);
+      // 2. Run AI Valuation
+      const valRes = await fetch("/api/valuations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...values, features: selectedFeatures }),
+      });
+
+      if (!valRes.ok) throw new Error(`API Valuation Error: ${valRes.status}`);
+      const valuationData = await valRes.json();
+
+      // 3. Save valuation result to DB
+      const saveRes = await fetch("/api/valuations/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          propertyId,
+          marketValue: valuationData.marketValue,
+          pricePerSqm: valuationData.pricePerSqm,
+          rentalValue: valuationData.rentalValue,
+          capRate: valuationData.capRate,
+          confidence: valuationData.confidence,
+          valuationMethod: valuationData.method,
+          comparables: valuationData.comparables,
+          aiAnalysis: valuationData.aiAnalysis,
+          aiRecommendations: valuationData.recommendations,
+          riskFactors: valuationData.riskFactors,
+        }),
+      });
+
+      if (!saveRes.ok) console.warn("Could not save valuation to DB, but showing results anyway.");
+
+      setValuationResult(valuationData);
       setStep(4);
     } catch (error) {
-      // Fallback demo data
+      console.error("Valuation flow failed:", error);
+      // Fallback demo data for preview if API fails (optional, good for resiliency)
       setValuationResult({
         marketValue: 45000000,
         pricePerSqm: 18000,
@@ -198,40 +230,10 @@ export function NewValuationView() {
             pricePerSqm: 18571,
             similarity: 0.92,
           },
-          {
-            name: "Centro Empresarial Sur",
-            address: "Blvd. de la Luz 45",
-            area: 2100,
-            price: 36750000,
-            pricePerSqm: 17500,
-            similarity: 0.85,
-          },
-          {
-            name: "Plaza Oficinas Oriente",
-            address: "Calz. Ignacio Zaragoza 320",
-            area: 3200,
-            price: 54400000,
-            pricePerSqm: 17000,
-            similarity: 0.78,
-          },
-          {
-            name: "Torre Comercial Poniente",
-            address: "Av. Constituyentes 890",
-            area: 2400,
-            price: 43200000,
-            pricePerSqm: 18000,
-            similarity: 0.88,
-          },
         ],
-        aiAnalysis:
-          `La propiedad "${values.name}" ubicada en ${values.city}, ${values.state}, presenta características que la posicionan en el segmento ${values.propertyType === "OFICINA" ? "clase A" : "intermedio-alto"} del mercado comercial.\n\nCon un área total de ${values.totalArea.toLocaleString()} m² y estado de conservación ${buildingConditionLabels[values.buildingCondition as BuildingCondition]}, la propiedad se compara favorablemente con activos similares en la zona. El análisis identifica un mercado activo con tendencia alcista en el sector, lo que respalda el valor estimado.\n\nLa ubicación en ${values.city} ofrece buena conectividad y acceso a servicios complementarios, factores que impactan positivamente en el valor comercial.`,
-        recommendations:
-          "1. Se recomienda realizar inspección física para validar el estado estructural.\n2. Considerar la depreciación funcional según el año de construcción.\n3. Evaluar las condiciones del mercado local en los próximos 3-6 meses.\n4. Revisar los usos de suelo vigentes para confirmar el potencial de desarrollo.\n5. Comparar con transacciones recientes en un radio de 2km para mayor precisión.",
-        riskFactors: [
-          { factor: "Volatilidad del mercado", level: "MEDIUM", description: "El mercado comercial muestra fluctuaciones en los últimos trimestres" },
-          { factor: "Ubicación periférica", level: "LOW", description: "La ubicación puede limitar ciertos usos comerciales" },
-          { factor: "Antigüedad del inmueble", level: "MEDIUM", description: "Considerar costos de mantenimiento y remodelación" },
-        ],
+        aiAnalysis: "Análisis de respaldo (demo) debido a un error en la conexión.",
+        recommendations: "1. Verificar conexión a internet.\n2. Reintentar en unos minutos.",
+        riskFactors: [],
       });
       setStep(4);
     } finally {

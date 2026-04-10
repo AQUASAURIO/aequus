@@ -1,16 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/db";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
 
 export async function GET() {
   try {
+    const supabase = await createSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
+
     const { data: properties, error } = await supabase
       .from("properties")
       .select("*, valuations(*)")
+      .eq("user_id", user.id)
       .order("created_at", { ascending: false });
 
     if (error) throw error;
 
-    // Sort valuations per property (supabase doesn't guarantee order in nested select)
+    // Sort valuations per property
     const sorted = (properties || []).map((p) => ({
       ...p,
       valuations: (p.valuations || [])
@@ -33,6 +41,13 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = await createSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
+
     const body = await request.json();
     const {
       name,
@@ -97,6 +112,7 @@ export async function POST(request: NextRequest) {
         notes,
         status,
         coordinates,
+        user_id: user.id,
       })
       .select()
       .single();

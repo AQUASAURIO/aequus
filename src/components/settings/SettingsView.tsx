@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { createClient } from "@supabase/supabase-js";
 import { formatCurrency } from "@/lib/types";
 import type { Plan, UserProfile, UserRole } from "@/lib/types";
 import { userRoleLabels } from "@/lib/types";
@@ -196,21 +197,57 @@ export function SettingsView() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [showApiKey, setShowApiKey] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [user] = useState<UserProfile>(demoUser);
+  const [user, setUser] = useState<UserProfile>(demoUser);
+  const [loading, setLoading] = useState(true);
+
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
   useEffect(() => {
-    fetch("/api/plans")
-      .then((res) => res.json())
-      .then((data) => setPlans(data.plans || []))
-      .catch(() => setPlans([]));
-  }, []);
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        // 1. Get plans
+        const plansRes = await fetch("/api/plans");
+        const plansData = await plansRes.json();
+        setPlans(plansData.plans || []);
 
+        // 2. Get real user role from DB
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        if (authUser) {
+          const { data: profile } = await supabase
+            .from("users")
+            .select("*, plans(*)")
+            .eq("id", authUser.id)
+            .single();
+
+          if (profile) {
+            setUser({
+              ...profile,
+              email: authUser.email || profile.email,
+              name: profile.name || authUser.email?.split("@")[0] || "Usuario",
+              plan: profile.plans,
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Error loading settings data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [supabase]);
 
   const handleCopyKey = () => {
     navigator.clipboard.writeText("aequo_sk_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6");
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  const isAdmin = user.role === "ADMIN";
 
   const maxVal = user.plan?.maxValuations ?? 0;
   const maxProp = user.plan?.maxProperties ?? 0;
@@ -219,26 +256,38 @@ export function SettingsView() {
   const propProgress =
     maxProp > 0 ? Math.min((12 / maxProp) * 100, 100) : 0;
 
+  if (loading) {
+    return (
+      <div className="flex h-[400px] items-center justify-center">
+        <Sparkles className="h-8 w-8 animate-pulse text-aequo-gold" />
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in duration-500">
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 lg:w-[500px]">
-          <TabsTrigger value="profile" className="gap-2 text-sm">
+        <TabsList className={`grid w-full lg:w-auto ${isAdmin ? "grid-cols-4" : "grid-cols-2"}`}>
+          <TabsTrigger value="profile" className="gap-2 text-sm px-8">
             <User className="h-4 w-4 hidden sm:block" />
             Perfil
           </TabsTrigger>
-          <TabsTrigger value="plans" className="gap-2 text-sm">
+          <TabsTrigger value="plans" className="gap-2 text-sm px-8">
             <CreditCard className="h-4 w-4 hidden sm:block" />
             Planes
           </TabsTrigger>
-          <TabsTrigger value="team" className="gap-2 text-sm">
-            <Users className="h-4 w-4 hidden sm:block" />
-            Equipo
-          </TabsTrigger>
-          <TabsTrigger value="api" className="gap-2 text-sm">
-            <Key className="h-4 w-4 hidden sm:block" />
-            API
-          </TabsTrigger>
+          {isAdmin && (
+            <>
+              <TabsTrigger value="team" className="gap-2 text-sm px-8">
+                <Users className="h-4 w-4 hidden sm:block" />
+                Equipo
+              </TabsTrigger>
+              <TabsTrigger value="api" className="gap-2 text-sm px-8">
+                <Key className="h-4 w-4 hidden sm:block" />
+                API Keys
+              </TabsTrigger>
+            </>
+          )}
         </TabsList>
 
         {/* ── Tab 1: Perfil ── */}
@@ -342,8 +391,8 @@ export function SettingsView() {
                       {user.plan?.maxUsers === -1
                         ? "Ilimitados"
                         : user.plan?.maxUsers === 1
-                        ? "1 + invitados"
-                        : `Hasta ${user.plan?.maxUsers}`}
+                          ? "1 + invitados"
+                          : `Hasta ${user.plan?.maxUsers}`}
                     </p>
                   </div>
                 </div>
@@ -467,9 +516,8 @@ export function SettingsView() {
               return (
                 <Card
                   key={plan.id}
-                  className={`relative overflow-hidden transition-all ${
-                    isCurrent ? "border-2 border-primary/60 shadow-md" : "hover:border-primary/20"
-                  }`}
+                  className={`relative overflow-hidden transition-all ${isCurrent ? "border-2 border-primary/60 shadow-md" : "hover:border-primary/20"
+                    }`}
                 >
                   {isCurrent && (
                     <div className="absolute right-3 top-3">
@@ -527,11 +575,10 @@ export function SettingsView() {
                           {plan.priceTiers?.map((tier) => (
                             <div
                               key={tier.label}
-                              className={`relative rounded-lg border-2 p-4 transition-all cursor-pointer hover:shadow-md ${
-                                tier.label === "Premium"
-                                  ? "border-primary/40 bg-primary/5 shadow-sm"
-                                  : "border-border hover:border-primary/20"
-                              }`}
+                              className={`relative rounded-lg border-2 p-4 transition-all cursor-pointer hover:shadow-md ${tier.label === "Premium"
+                                ? "border-primary/40 bg-primary/5 shadow-sm"
+                                : "border-border hover:border-primary/20"
+                                }`}
                             >
                               {tier.label === "Premium" && (
                                 <div className="absolute -top-2 left-3">
@@ -553,11 +600,10 @@ export function SettingsView() {
                                 ))}
                               </ul>
                               <Button
-                                className={`w-full h-8 text-xs mt-3 ${
-                                  tier.label === "Premium"
-                                    ? "bg-primary hover:bg-primary/90"
-                                    : "bg-muted hover:bg-muted/80 text-foreground"
-                                }`}
+                                className={`w-full h-8 text-xs mt-3 ${tier.label === "Premium"
+                                  ? "bg-primary hover:bg-primary/90"
+                                  : "bg-muted hover:bg-muted/80 text-foreground"
+                                  }`}
                               >
                                 Elegir {tier.label}
                               </Button>
@@ -592,13 +638,12 @@ export function SettingsView() {
                 return (
                   <Card
                     key={plan.id}
-                    className={`relative flex flex-col overflow-hidden transition-all duration-200 ${
-                      isHighlighted
-                        ? "border-2 border-primary shadow-xl shadow-primary/10 lg:scale-105 lg:-my-1 z-10"
-                        : isCurrent
+                    className={`relative flex flex-col overflow-hidden transition-all duration-200 ${isHighlighted
+                      ? "border-2 border-primary shadow-xl shadow-primary/10 lg:scale-105 lg:-my-1 z-10"
+                      : isCurrent
                         ? "border-2 border-primary/50"
                         : "hover:border-primary/20"
-                    }`}
+                      }`}
                   >
                     {/* Top banner for highlighted */}
                     {isHighlighted && (
@@ -656,8 +701,8 @@ export function SettingsView() {
                             plan.maxUsers === -1
                               ? "Ilimitados + SSO"
                               : plan.maxUsers === 1
-                              ? "1 + invitados lectura"
-                              : `Hasta ${plan.maxUsers} (roles)`
+                                ? "1 + invitados lectura"
+                                : `Hasta ${plan.maxUsers} (roles)`
                           }
                         />
                         <PlanMetaRow

@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useState, useEffect, useSyncExternalStore } from "react";
 import dynamic from "next/dynamic";
 import {
   Building2,
@@ -37,6 +37,7 @@ import {
 import { useAppStore } from "@/lib/store";
 import { formatCurrency, propertyTypeLabels, propertyTypeColors, formatNumber, formatDate } from "@/lib/types";
 import type { Property, Valuation } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 const MapSection = dynamic(
   () => import("@/components/maps/MapSection").then((m) => ({ default: m.MapSection })),
@@ -48,115 +49,128 @@ const monthlyData: any[] = [];
 const typeDistribution: any[] = [];
 const recentProperties: any[] = [];
 
-// Recent properties array is now empty
-
-const stats = [
-  {
-    title: "Propiedades Valuadas",
-    value: "0",
-    change: "0%",
-    trend: "up" as const,
-    icon: Building2,
-    description: "este mes",
-  },
-  {
-    title: "Valor Total Portafolio",
-    value: "$0.0",
-    change: "0%",
-    trend: "up" as const,
-    icon: DollarSign,
-    description: "vs. mes anterior",
-  },
-  {
-    title: "Precio Promedio/m²",
-    value: "$0",
-    change: "0%",
-    trend: "up" as const,
-    icon: TrendingUp,
-    description: "promedio general",
-  },
-  {
-    title: "Valuaciones Pendientes",
-    value: "0",
-    change: "0",
-    trend: "up" as const,
-    icon: FileCheck,
-    description: "requieren atención",
-  },
-];
-
 export function DashboardView() {
-  const { navigateToProperty } = useAppStore();
+  const { navigateToProperty, setCurrentView } = useAppStore();
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const mounted = useSyncExternalStore(
     () => () => { },
     () => true,
     () => false
   );
 
-  if (!mounted) {
+  useEffect(() => {
+    if (mounted) {
+      const fetchDashboardData = async () => {
+        try {
+          setLoading(true);
+          const res = await fetch("/api/dashboard");
+          if (res.ok) {
+            const result = await res.json();
+            setData(result);
+          }
+        } catch (error) {
+          console.error("Error fetching dashboard data:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchDashboardData();
+    }
+  }, [mounted]);
+
+  if (!mounted || loading) {
     return (
       <div className="space-y-6">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {[...Array(4)].map((_, i) => (
             <Card key={i} className="animate-pulse">
-              <CardContent className="p-6">
-                <div className="h-24 rounded bg-muted" />
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <div className="h-4 w-24 bg-muted rounded" />
+                <div className="h-4 w-4 bg-muted rounded" />
+              </CardHeader>
+              <CardContent>
+                <div className="h-8 w-16 bg-muted rounded mb-1" />
+                <div className="h-3 w-32 bg-muted rounded" />
               </CardContent>
             </Card>
           ))}
         </div>
-        <div className="grid gap-6 lg:grid-cols-7">
-          <Card className="lg:col-span-4 animate-pulse">
-            <CardContent className="p-6 h-80 rounded bg-muted" />
-          </Card>
-          <Card className="lg:col-span-3 animate-pulse">
-            <CardContent className="p-6 h-80 rounded bg-muted" />
-          </Card>
-        </div>
+        <Card className="animate-pulse h-[400px]" />
       </div>
     );
   }
 
+  const stats = [
+    {
+      title: "Propiedades Valuadas",
+      value: data?.totalProperties?.toString() || "0",
+      change: "+0%",
+      trend: "up" as const,
+      icon: Building2,
+      description: "total en base de datos",
+    },
+    {
+      title: "Valor Total Portafolio",
+      value: formatCurrency(data?.totalValue || 0),
+      change: "+0%",
+      trend: "up" as const,
+      icon: DollarSign,
+      description: "total estimado",
+    },
+    {
+      title: "Precio Promedio/m²",
+      value: formatCurrency(data?.avgPricePerSqm || 0),
+      change: "+0%",
+      trend: "up" as const,
+      icon: TrendingUp,
+      description: "promedio general",
+    },
+    {
+      title: "Valuaciones Pendientes",
+      value: data?.pendingValuations?.toString() || "0",
+      change: "0",
+      trend: "up" as const,
+      icon: FileCheck,
+      description: "requieren atención",
+    },
+  ];
+
   return (
-    <div className="space-y-6">
-      {/* Stats Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <Card key={stat.title} className="relative overflow-hidden">
-              <CardContent className="p-5">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                      {stat.title}
-                    </p>
-                    <p className="text-2xl font-bold tracking-tight">{stat.value}</p>
-                  </div>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                    <Icon className="h-5 w-5 text-primary" />
-                  </div>
-                </div>
-                <div className="mt-3 flex items-center gap-1 text-xs">
+    <div className="space-y-6 animate-in fade-in duration-500">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {stats.map((stat) => (
+          <Card key={stat.title} className="hover:border-primary/20 transition-all duration-300">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                {stat.title}
+              </CardTitle>
+              <stat.icon className="h-4 w-4 text-aequo-gold" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stat.value}</div>
+              <div className="flex items-center gap-1 mt-1">
+                <span className={cn(
+                  "text-xs font-medium flex items-center",
+                  stat.trend === "up" ? "text-emerald-500" : "text-rose-500"
+                )}>
                   {stat.trend === "up" ? (
-                    <ArrowUpRight className="h-3.5 w-3.5 text-emerald-600" />
+                    <ArrowUpRight className="h-3 w-3 mr-0.5" />
                   ) : (
-                    <ArrowDownRight className="h-3.5 w-3.5 text-red-500" />
+                    <ArrowDownRight className="h-3 w-3 mr-0.5" />
                   )}
-                  <span className={stat.trend === "up" ? "text-emerald-600" : "text-red-500"}>
-                    {stat.change}
-                  </span>
-                  <span className="text-muted-foreground">{stat.description}</span>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+                  {stat.change}
+                </span>
+                <span className="text-[10px] text-muted-foreground">
+                  {stat.description}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      {/* Charts Row */}
       <div className="grid gap-6 lg:grid-cols-7">
-        {/* Valuation Trend */}
         <Card className="lg:col-span-4">
           <CardHeader className="pb-2">
             <CardTitle className="text-base font-semibold">Tendencia de Valuaciones</CardTitle>
@@ -165,30 +179,25 @@ export function DashboardView() {
           <CardContent className="pt-4">
             <ChartContainer
               config={{
-                valuaciones: { label: "Valuaciones", color: "#10b981" },
-                valor: { label: "Valor (M)", color: "#f59e0b" },
+                valuaciones: { label: "Valuaciones", color: "#d4af37" },
               }}
               className="h-[280px] w-full"
             >
-              <AreaChart data={monthlyData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
+              <AreaChart data={[]} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="fillVal" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="fillValM" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#d4af37" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#d4af37" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis dataKey="month" className="text-xs" tick={{ fill: "oklch(0.50 0.02 155)" }} />
-                <YAxis className="text-xs" tick={{ fill: "oklch(0.50 0.02 155)" }} />
+                <XAxis dataKey="month" className="text-xs" />
+                <YAxis className="text-xs" />
                 <ChartTooltip content={<ChartTooltipContent />} />
                 <Area
                   type="monotone"
                   dataKey="valuaciones"
-                  stroke="#10b981"
+                  stroke="#d4af37"
                   fill="url(#fillVal)"
                   strokeWidth={2}
                 />
@@ -197,61 +206,21 @@ export function DashboardView() {
           </CardContent>
         </Card>
 
-        {/* Type Distribution */}
         <Card className="lg:col-span-3">
           <CardHeader className="pb-2">
             <CardTitle className="text-base font-semibold">Distribución por Tipo</CardTitle>
             <CardDescription>Propiedades valuadas por categoría</CardDescription>
           </CardHeader>
           <CardContent className="pt-4">
-            <div className="flex items-center gap-4">
-              <ChartContainer
-                config={{
-                  Oficina: { label: "Oficina", color: "#10b981" },
-                  Retail: { label: "Retail", color: "#f59e0b" },
-                  Industrial: { label: "Industrial", color: "#64748b" },
-                  Bodega: { label: "Bodega", color: "#f97316" },
-                  Mixto: { label: "Mixto", color: "#a855f7" },
-                }}
-                className="h-[200px] w-[200px]"
-              >
-                <PieChart>
-                  <Pie
-                    data={typeDistribution}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={55}
-                    outerRadius={85}
-                    paddingAngle={4}
-                    dataKey="value"
-                  >
-                    {typeDistribution.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                </PieChart>
-              </ChartContainer>
-              <div className="flex-1 space-y-2.5">
-                {typeDistribution.map((item) => (
-                  <div key={item.name} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="h-2.5 w-2.5 rounded-full"
-                        style={{ backgroundColor: item.color }}
-                      />
-                      <span className="text-sm text-muted-foreground">{item.name}</span>
-                    </div>
-                    <span className="text-sm font-semibold">{item.value}%</span>
-                  </div>
-                ))}
-              </div>
+            <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed border-muted rounded-xl bg-muted/20">
+              <TrendingUp className="h-10 w-10 text-muted-foreground/30 mb-3" />
+              <p className="text-sm font-medium text-muted-foreground">Sin datos suficientes</p>
+              <p className="text-xs text-muted-foreground/60">Agrega más propiedades para ver la distribución</p>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Recent Properties */}
       <Card>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
@@ -262,78 +231,21 @@ export function DashboardView() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => useAppStore.getState().setCurrentView("properties")}
+              onClick={() => setCurrentView("properties")}
             >
               Ver todas
             </Button>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            {recentProperties.length > 0 ? (
-              recentProperties.map((property) => (
-                <button
-                  key={property.id}
-                  onClick={() => navigateToProperty(property.id)}
-                  className="flex w-full items-center gap-4 rounded-lg border border-border p-4 text-left transition-all hover:bg-accent/50 hover:border-primary/20"
-                >
-                  {/* ... property layout ... */}
-                </button>
-              ))
-            ) : (
-              <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed border-muted rounded-xl bg-muted/20">
-                <Building2 className="h-10 w-10 text-muted-foreground/30 mb-3" />
-                <p className="text-sm font-medium text-muted-foreground">No hay valuaciones recientes</p>
-                <p className="text-xs text-muted-foreground/60">Las nuevas valuaciones aparecerán aquí</p>
-              </div>
-            )}
+          <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed border-muted rounded-xl bg-muted/20">
+            <Building2 className="h-10 w-10 text-muted-foreground/30 mb-3" />
+            <p className="text-sm font-medium text-muted-foreground">No hay valuaciones recientes</p>
+            <p className="text-xs text-muted-foreground/60">Las nuevas valuaciones aparecerán aquí</p>
           </div>
         </CardContent>
       </Card>
 
-      {/* Quick Value Bar Chart */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">Valor por Zona</CardTitle>
-            <CardDescription>Precio promedio por m² según ubicación</CardDescription>
-          </CardHeader>
-          <CardContent className="pt-4">
-            <ChartContainer
-              config={{
-                precio: { label: "Precio/m²", color: "#10b981" },
-              }}
-              className="h-[220px] w-full"
-            >
-              <BarChart
-                data={[]}
-                margin={{ top: 5, right: 10, left: 0, bottom: 0 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis dataKey="zona" className="text-xs" tick={{ fill: "oklch(0.50 0.02 155)", fontSize: 11 }} />
-                <YAxis className="text-xs" tick={{ fill: "oklch(0.50 0.02 155)" }} />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar dataKey="precio" fill="#10b981" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ChartContainer>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">Actividad Reciente</CardTitle>
-            <CardDescription>Últimas acciones realizadas</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col items-center justify-center py-8 text-center border-2 border-dashed border-muted rounded-xl bg-muted/20">
-              <TrendingUp className="h-8 w-8 text-muted-foreground/30 mb-2" />
-              <p className="text-sm text-muted-foreground">Sin actividad reciente</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Map */}
       <MapSection />
     </div>
   );

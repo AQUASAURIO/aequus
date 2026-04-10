@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Search,
   Building2,
@@ -77,6 +77,8 @@ type SortDir = "asc" | "desc";
 
 export function PropertiesDirectory() {
   const { navigateToProperty, setCurrentView } = useAppStore();
+  const [properties, setProperties] = useState<DemoProperty[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -85,8 +87,35 @@ export function PropertiesDirectory() {
   const [showFilters, setShowFilters] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
 
+  const fetchProperties = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch("/api/properties");
+      if (res.ok) {
+        const data = await res.json();
+        // Map backend properties to directory format
+        const mapped = data.map((p: any) => ({
+          ...p,
+          marketValue: p.valuations?.[0]?.market_value || null,
+          pricePerSqm: p.valuations?.[0]?.price_per_sqm || null,
+          confidence: p.valuations?.[0]?.confidence || null,
+          createdAt: p.created_at || p.createdAt,
+        }));
+        setProperties(mapped);
+      }
+    } catch (error) {
+      console.error("Error fetching properties:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProperties();
+  }, []);
+
   const filtered = useMemo(() => {
-    let data = [...demoProperties];
+    let data = [...properties];
 
     if (search) {
       const s = search.toLowerCase();
@@ -110,7 +139,7 @@ export function PropertiesDirectory() {
     });
 
     return data;
-  }, [search, typeFilter, statusFilter, sortField, sortDir]);
+  }, [properties, search, typeFilter, statusFilter, sortField, sortDir]);
 
   const toggleSort = (field: SortField) => {
     if (sortField === field) setSortDir(sortDir === "asc" ? "desc" : "asc");
