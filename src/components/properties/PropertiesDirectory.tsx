@@ -70,56 +70,7 @@ interface DemoProperty {
   confidence: number | null;
 }
 
-const demoProperties: DemoProperty[] = [
-  {
-    id: "1", name: "Torre Cisneros", address: "Av. Winston Churchill 45",
-    city: "Santo Domingo", state: "DN", propertyType: "OFICINA", totalArea: 4500,
-    yearBuilt: 2018, buildingCondition: "EXCELENTE", status: "VALUADO",
-    marketValue: 85000000, pricePerSqm: 18889, createdAt: "2025-01-10T10:00:00Z", confidence: 0.92,
-  },
-  {
-    id: "2", name: "Plaza Lama Central", address: "Av. Independencia 302",
-    city: "Santo Domingo", state: "DN", propertyType: "RETAIL", totalArea: 1200,
-    yearBuilt: 2020, buildingCondition: "BUENO", status: "VALUADO",
-    marketValue: 32000000, pricePerSqm: 26667, createdAt: "2025-01-08T14:30:00Z", confidence: 0.88,
-  },
-  {
-    id: "3", name: "Zona Franca Santiago", address: "Autopista Duarte Km 5",
-    city: "Santiago", state: "STI", propertyType: "INDUSTRIAL", totalArea: 8000,
-    yearBuilt: 2022, buildingCondition: "EXCELENTE", status: "VALUADO",
-    marketValue: 45000000, pricePerSqm: 5625, createdAt: "2025-01-05T09:15:00Z", confidence: 0.85,
-  },
-  {
-    id: "4", name: "Torre Naco Business Center", address: "Av. Gustavo Mejía Ricart 78",
-    city: "Santo Domingo", state: "DN", propertyType: "OFICINA", totalArea: 2800,
-    yearBuilt: 2015, buildingCondition: "BUENO", status: "EN_REVISION",
-    marketValue: null, pricePerSqm: null, createdAt: "2025-01-03T16:45:00Z", confidence: null,
-  },
-  {
-    id: "5", name: "Bodega Haina", address: "Km 22 Carretera Sánchez",
-    city: "San Cristóbal", state: "SC", propertyType: "BODEGA", totalArea: 12000,
-    yearBuilt: 2021, buildingCondition: "EXCELENTE", status: "VALUADO",
-    marketValue: 55000000, pricePerSqm: 4583, createdAt: "2024-12-28T11:00:00Z", confidence: 0.90,
-  },
-  {
-    id: "6", name: "Plaza Megacentro", address: "Av. Charles de Gaulle",
-    city: "Santo Domingo", state: "DN", propertyType: "RETAIL", totalArea: 3500,
-    yearBuilt: 2019, buildingCondition: "BUENO", status: "VALUADO",
-    marketValue: 63000000, pricePerSqm: 18000, createdAt: "2024-12-22T15:20:00Z", confidence: 0.86,
-  },
-  {
-    id: "7", name: "Hotel Barceló Bávaro", address: "Bávaro, Punta Cana",
-    city: "Higüey", state: "LAR", propertyType: "HOTEL", totalArea: 2200,
-    yearBuilt: 2017, buildingCondition: "BUENO", status: "VALUADO",
-    marketValue: 38000000, pricePerSqm: 17273, createdAt: "2024-12-18T09:30:00Z", confidence: 0.82,
-  },
-  {
-    id: "8", name: "Terreno Punta Cana Verón", address: "Verón, Punta Cana",
-    city: "Higüey", state: "LAR", propertyType: "TERRENO", totalArea: 15000,
-    yearBuilt: null, buildingCondition: "N/A", status: "BORRADOR",
-    marketValue: null, pricePerSqm: null, createdAt: "2024-12-15T14:00:00Z", confidence: null,
-  },
-];
+const demoProperties: DemoProperty[] = [];
 
 type SortField = "name" | "createdAt" | "totalArea" | "marketValue";
 type SortDir = "asc" | "desc";
@@ -410,8 +361,8 @@ export function PropertiesDirectory() {
                             property.status === "VALUADO"
                               ? "default"
                               : property.status === "EN_REVISION"
-                              ? "secondary"
-                              : "outline"
+                                ? "secondary"
+                                : "outline"
                           }
                           className="text-[10px]"
                         >

@@ -43,191 +43,12 @@ const MapSection = dynamic(
   { ssr: false, loading: () => <Card className="animate-pulse"><CardContent className="h-[420px]" /></Card> }
 );
 
-// Demo data for charts
-const monthlyData = [
-  { month: "Jul", valuaciones: 3, valor: 12500000 },
-  { month: "Ago", valuaciones: 5, valor: 22000000 },
-  { month: "Sep", valuaciones: 4, valor: 18000000 },
-  { month: "Oct", valuaciones: 7, valor: 35000000 },
-  { month: "Nov", valuaciones: 6, valor: 28500000 },
-  { month: "Dic", valuaciones: 8, valor: 42000000 },
-];
+// Demo data for charts - Empty placeholders
+const monthlyData: any[] = [];
+const typeDistribution: any[] = [];
+const recentProperties: any[] = [];
 
-const typeDistribution = [
-  { name: "Oficina", value: 35, color: "#10b981" },
-  { name: "Retail", value: 25, color: "#f59e0b" },
-  { name: "Industrial", value: 20, color: "#64748b" },
-  { name: "Bodega", value: 12, color: "#f97316" },
-  { name: "Mixto", value: 8, color: "#a855f7" },
-];
-
-const recentProperties: (Property & { latestValuation?: Valuation })[] = [
-  {
-    id: "1",
-    name: "Centro Corporativo Piantini",
-    address: "Av. Winston Churchill 45",
-    city: "Santo Domingo",
-    state: "DN",
-    zipCode: "10101",
-    country: "DO",
-    propertyType: "OFICINA",
-    totalArea: 4500,
-    constructedArea: 4200,
-    lotArea: null,
-    floors: 12,
-    yearBuilt: 2018,
-    parkingSpaces: 80,
-    bathrooms: 24,
-    currentUse: "Oficinas Corporativas",
-    buildingCondition: "EXCELENTE",
-    features: '["Ascensor","Aire Acondicionado","Vigilancia 24/7"]',
-    coordinates: null,
-    imageUrl: null,
-    notes: null,
-    status: "VALUADO",
-    createdAt: "2025-01-10T10:00:00Z",
-    updatedAt: "2025-01-10T10:00:00Z",
-    valuations: [],
-    latestValuation: {
-      id: "v1",
-      propertyId: "1",
-      marketValue: 52000000,
-      pricePerSqm: 11556,
-      rentalValue: 380000,
-      capRate: 8.77,
-      confidence: 0.92,
-      valuationMethod: "HIBRIDO",
-      comparablesData: null,
-      aiAnalysis: "Propiedad de clase A con excelente ubicación...",
-      aiRecommendations: null,
-      riskFactors: null,
-      marketTrends: null,
-      valuatedAt: "2025-01-10T10:00:00Z",
-      expiresAt: null,
-      createdAt: "2025-01-10T10:00:00Z",
-      updatedAt: "2025-01-10T10:00:00Z",
-    },
-  },
-  {
-    id: "2",
-    name: "Plaza Comercial Acropolis",
-    address: "Av. Winston Churchill, Local 42",
-    city: "Santo Domingo",
-    state: "DN",
-    zipCode: "10101",
-    country: "DO",
-    propertyType: "RETAIL",
-    totalArea: 1200,
-    constructedArea: 1200,
-    lotArea: null,
-    floors: 2,
-    yearBuilt: 2020,
-    parkingSpaces: 15,
-    bathrooms: 4,
-    currentUse: "Tienda Departamental",
-    buildingCondition: "BUENO",
-    features: '["Aire Acondicionado","Estacionamiento Subterráneo"]',
-    coordinates: null,
-    imageUrl: null,
-    notes: null,
-    status: "VALUADO",
-    createdAt: "2025-01-08T14:30:00Z",
-    updatedAt: "2025-01-08T14:30:00Z",
-    valuations: [],
-    latestValuation: {
-      id: "v2",
-      propertyId: "2",
-      marketValue: 25000000,
-      pricePerSqm: 20833,
-      rentalValue: 145000,
-      capRate: 6.96,
-      confidence: 0.88,
-      valuationMethod: "COMPARABLE",
-      comparablesData: null,
-      aiAnalysis: "Espacio retail de alto tráfico...",
-      aiRecommendations: null,
-      riskFactors: null,
-      marketTrends: null,
-      valuatedAt: "2025-01-08T14:30:00Z",
-      expiresAt: null,
-      createdAt: "2025-01-08T14:30:00Z",
-      updatedAt: "2025-01-08T14:30:00Z",
-    },
-  },
-  {
-    id: "3",
-    name: "Zona Franca Industrial Santiago",
-    address: "Autopista Duarte Km 5",
-    city: "Santiago",
-    state: "STI",
-    zipCode: "51000",
-    country: "DO",
-    propertyType: "INDUSTRIAL",
-    totalArea: 8000,
-    constructedArea: 6500,
-    lotArea: 8000,
-    floors: 1,
-    yearBuilt: 2022,
-    parkingSpaces: 40,
-    bathrooms: 8,
-    currentUse: "Almacén y Producción",
-    buildingCondition: "EXCELENTE",
-    features: '["Muelles de Carga","Cuarto Eléctrico","Sistema de Ventilación","Cercado Perimetral"]',
-    coordinates: null,
-    imageUrl: null,
-    notes: null,
-    status: "VALUADO",
-    createdAt: "2025-01-05T09:15:00Z",
-    updatedAt: "2025-01-05T09:15:00Z",
-    valuations: [],
-    latestValuation: {
-      id: "v3",
-      propertyId: "3",
-      marketValue: 28000000,
-      pricePerSqm: 3500,
-      rentalValue: 140000,
-      capRate: 6.00,
-      confidence: 0.85,
-      valuationMethod: "COSTO",
-      comparablesData: null,
-      aiAnalysis: "Nave industrial moderna con excelente infraestructura...",
-      aiRecommendations: null,
-      riskFactors: null,
-      marketTrends: null,
-      valuatedAt: "2025-01-05T09:15:00Z",
-      expiresAt: null,
-      createdAt: "2025-01-05T09:15:00Z",
-      updatedAt: "2025-01-05T09:15:00Z",
-    },
-  },
-  {
-    id: "4",
-    name: "Torre Naco Business Center",
-    address: "Av. Gustavo Mejía Ricart 78",
-    city: "Santo Domingo",
-    state: "DN",
-    zipCode: "10105",
-    country: "DO",
-    propertyType: "OFICINA",
-    totalArea: 2800,
-    constructedArea: 2600,
-    lotArea: null,
-    floors: 8,
-    yearBuilt: 2015,
-    parkingSpaces: 45,
-    bathrooms: 16,
-    currentUse: "Coworking Premium",
-    buildingCondition: "BUENO",
-    features: '["Ascensor","Aire Acondicionado","Recepción","Terraza"]',
-    coordinates: null,
-    imageUrl: null,
-    notes: null,
-    status: "EN_REVISION",
-    createdAt: "2025-01-03T16:45:00Z",
-    updatedAt: "2025-01-03T16:45:00Z",
-    valuations: [],
-  },
-];
+// Recent properties array is now empty
 
 const stats = [
   {
@@ -449,56 +270,23 @@ export function DashboardView() {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {recentProperties.map((property) => (
-              <button
-                key={property.id}
-                onClick={() => navigateToProperty(property.id)}
-                className="flex w-full items-center gap-4 rounded-lg border border-border p-4 text-left transition-all hover:bg-accent/50 hover:border-primary/20"
-              >
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                  <Building2 className="h-5 w-5 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="truncate text-sm font-semibold">{property.name}</p>
-                    <Badge
-                      variant="secondary"
-                      className={`shrink-0 text-[10px] px-1.5 py-0 ${propertyTypeColors[property.propertyType]}`}
-                    >
-                      {propertyTypeLabels[property.propertyType]}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <MapPin className="h-3 w-3" />
-                      {property.city}, {property.state}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Calendar className="h-3 w-3" />
-                      {formatDate(property.createdAt)}
-                    </span>
-                  </div>
-                </div>
-                {property.latestValuation && (
-                  <div className="text-right shrink-0">
-                    <p className="text-sm font-bold">
-                      {formatCurrency(property.latestValuation.marketValue)}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatNumber(property.latestValuation.pricePerSqm || 0)}/m²
-                    </p>
-                    <div className="mt-1 flex items-center justify-end gap-1">
-                      <span className="text-[10px] text-muted-foreground">Confianza</span>
-                      <Progress
-                        value={property.latestValuation.confidence * 100}
-                        className="h-1.5 w-16"
-                      />
-                    </div>
-                  </div>
-                )}
-                <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-              </button>
-            ))}
+            {recentProperties.length > 0 ? (
+              recentProperties.map((property) => (
+                <button
+                  key={property.id}
+                  onClick={() => navigateToProperty(property.id)}
+                  className="flex w-full items-center gap-4 rounded-lg border border-border p-4 text-left transition-all hover:bg-accent/50 hover:border-primary/20"
+                >
+                  {/* ... property layout ... */}
+                </button>
+              ))
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed border-muted rounded-xl bg-muted/20">
+                <Building2 className="h-10 w-10 text-muted-foreground/30 mb-3" />
+                <p className="text-sm font-medium text-muted-foreground">No hay valuaciones recientes</p>
+                <p className="text-xs text-muted-foreground/60">Las nuevas valuaciones aparecerán aquí</p>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -543,52 +331,9 @@ export function DashboardView() {
             <CardDescription>Últimas acciones realizadas</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {[
-                {
-                  action: "Nueva valuación completada",
-                  detail: "Centro Corporativo Piantini",
-                  time: "Hace 2 horas",
-                  type: "success",
-                },
-                {
-                  action: "Propiedad registrada",
-                  detail: "Bodega Industrial San Pedro",
-                  time: "Hace 5 horas",
-                  type: "info",
-                },
-                {
-                  action: "Reporte exportado",
-                  detail: "Plaza Comercial Acropolis",
-                  time: "Ayer",
-                  type: "info",
-                },
-                {
-                  action: "Valuación actualizada",
-                  detail: "Zona Franca Santiago",
-                  time: "Hace 2 días",
-                  type: "success",
-                },
-                {
-                  action: "Nuevo usuario invitado",
-                  detail: "maria@inmobiliaria.com",
-                  time: "Hace 3 días",
-                  type: "info",
-                },
-              ].map((item, i) => (
-                <div key={i} className="flex items-start gap-3">
-                  <div
-                    className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${
-                      item.type === "success" ? "bg-emerald-500" : "bg-muted-foreground/40"
-                    }`}
-                  />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">{item.action}</p>
-                    <p className="text-xs text-muted-foreground">{item.detail}</p>
-                  </div>
-                  <span className="text-xs text-muted-foreground shrink-0">{item.time}</span>
-                </div>
-              ))}
+            <div className="flex flex-col items-center justify-center py-8 text-center border-2 border-dashed border-muted rounded-xl bg-muted/20">
+              <TrendingUp className="h-8 w-8 text-muted-foreground/30 mb-2" />
+              <p className="text-sm text-muted-foreground">Sin actividad reciente</p>
             </div>
           </CardContent>
         </Card>

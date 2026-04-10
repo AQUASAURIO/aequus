@@ -31,7 +31,13 @@ if (process.env.NODE_ENV !== "production") {
   globalForSupabase.supabase = supabase;
 }
 
-// Check if Supabase is properly configured
-export function isSupabaseConfigured(): boolean {
-  return !!supabaseUrl && !!supabaseAnonKey;
+// Check if Supabase is properly configured and reachable
+export async function isSupabaseConnected(): Promise<boolean> {
+  if (!supabaseUrl || !supabaseAnonKey) return false;
+  try {
+    const { error } = await supabase.from('plans').select('id').limit(1);
+    return !error;
+  } catch (e) {
+    return false;
+  }
 }

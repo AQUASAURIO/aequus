@@ -11,7 +11,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Sparkles,
+  Wifi,
+  WifiOff,
 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { isSupabaseConnected } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
@@ -26,6 +30,18 @@ const navItems = [
 
 export function AppSidebar() {
   const { currentView, sidebarOpen, toggleSidebar, setCurrentView, toggleAiChat } = useAppStore();
+  const [isConnected, setIsConnected] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const checkConnection = async () => {
+      const connected = await isSupabaseConnected();
+      setIsConnected(connected);
+    };
+    checkConnection();
+    // Re-check every 30 seconds
+    const interval = setInterval(checkConnection, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -37,16 +53,16 @@ export function AppSidebar() {
       >
         {/* Logo */}
         <div className="flex h-16 items-center gap-3 px-4">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg">
-            <img src="/aequo-logo.png" alt="Æquo" className="h-9 w-9 object-contain" />
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-border/50">
+            <img src="/aequo_logo.png" alt="Æquo" className="h-8 w-8 object-contain" />
           </div>
           {sidebarOpen && (
             <div className="overflow-hidden">
               <h1 className="text-lg font-bold tracking-tight text-sidebar-foreground">
-                Æquo
+                ÆQUO
               </h1>
-              <p className="text-[10px] uppercase tracking-widest text-sidebar-foreground/50">
-                Valuación Comercial
+              <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-sidebar-foreground/40">
+                Commercial Valuation
               </p>
             </div>
           )}
@@ -114,6 +130,42 @@ export function AppSidebar() {
               </div>
             )}
           </button>
+        </div>
+
+        {/* Connection Status */}
+        <div className="px-3 pb-4 mt-auto">
+          <div className={cn(
+            "flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-medium transition-all duration-200",
+            sidebarOpen ? "bg-sidebar-accent/30" : "justify-center"
+          )}>
+            <div className="relative flex h-2 w-2">
+              {isConnected === true ? (
+                <>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </>
+              ) : isConnected === false ? (
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-destructive"></span>
+              ) : (
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-muted-foreground/30"></span>
+              )}
+            </div>
+            {sidebarOpen && (
+              <span className="text-sidebar-foreground/50 transition-colors">
+                {isConnected === true ? "Supabase Conectado" : isConnected === false ? "Error de Conexión" : "Verificando..."}
+              </span>
+            )}
+            {!sidebarOpen && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="h-5 w-5" />
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  {isConnected === true ? "Conectado" : isConnected === false ? "Desconectado" : "Verificando..."}
+                </TooltipContent>
+              </Tooltip>
+            )}
+          </div>
         </div>
 
         <Separator className="bg-sidebar-border" />
