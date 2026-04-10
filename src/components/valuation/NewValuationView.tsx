@@ -165,13 +165,18 @@ export function NewValuationView() {
 
   const runValuation = async () => {
     setIsValuating(true);
+    const values = form.getValues();
     try {
-      const values = form.getValues();
       const res = await fetch("/api/valuations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...values, features: selectedFeatures }),
       });
+
+      if (!res.ok) {
+        throw new Error(`API Error: ${res.status}`);
+      }
+
       const data = await res.json();
       setValuationResult(data);
       setStep(4);
@@ -254,18 +259,16 @@ export function NewValuationView() {
               return (
                 <div key={s.id} className="flex-1 relative">
                   <div
-                    className={`flex flex-col items-center gap-1.5 py-4 transition-all ${
-                      isActive ? "text-primary" : isCompleted ? "text-emerald-600" : "text-muted-foreground"
-                    }`}
+                    className={`flex flex-col items-center gap-1.5 py-4 transition-all ${isActive ? "text-primary" : isCompleted ? "text-emerald-600" : "text-muted-foreground"
+                      }`}
                   >
                     <div
-                      className={`flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all ${
-                        isCompleted
-                          ? "border-emerald-500 bg-emerald-500 text-white"
-                          : isActive
+                      className={`flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all ${isCompleted
+                        ? "border-emerald-500 bg-emerald-500 text-white"
+                        : isActive
                           ? "border-primary bg-primary/10"
                           : "border-muted-foreground/30 bg-background"
-                      }`}
+                        }`}
                     >
                       {isCompleted ? <Check className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
                     </div>
@@ -273,9 +276,8 @@ export function NewValuationView() {
                   </div>
                   {i < steps.length - 1 && (
                     <div
-                      className={`absolute top-[38px] left-1/2 h-0.5 w-full transition-all ${
-                        isCompleted ? "bg-emerald-500" : "bg-muted-foreground/20"
-                      }`}
+                      className={`absolute top-[38px] left-1/2 h-0.5 w-full transition-all ${isCompleted ? "bg-emerald-500" : "bg-muted-foreground/20"
+                        }`}
                     />
                   )}
                 </div>
@@ -562,11 +564,10 @@ export function NewValuationView() {
                   key={feature}
                   type="button"
                   onClick={() => toggleFeature(feature)}
-                  className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
-                    selectedFeatures.includes(feature)
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-border text-muted-foreground hover:border-primary/40 hover:bg-accent"
-                  }`}
+                  className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${selectedFeatures.includes(feature)
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border text-muted-foreground hover:border-primary/40 hover:bg-accent"
+                    }`}
                 >
                   {selectedFeatures.includes(feature) && <Check className="mr-1 inline h-3 w-3" />}
                   {feature}
@@ -657,10 +658,10 @@ export function NewValuationView() {
                   {valuationResult.method === "HIBRIDO"
                     ? "Método Híbrido"
                     : valuationResult.method === "COMPARABLE"
-                    ? "Método de Comparables"
-                    : valuationResult.method === "INGRESO"
-                    ? "Método de Ingresos"
-                    : "Método de Costo"}
+                      ? "Método de Comparables"
+                      : valuationResult.method === "INGRESO"
+                        ? "Método de Ingresos"
+                        : "Método de Costo"}
                 </Badge>
               </div>
             </div>
@@ -769,13 +770,12 @@ export function NewValuationView() {
                     {valuationResult.riskFactors.map((risk, i) => (
                       <div key={i} className="flex items-start gap-3 rounded-lg border p-4">
                         <div
-                          className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${
-                            risk.level === "LOW"
-                              ? "bg-emerald-100 text-emerald-700"
-                              : risk.level === "MEDIUM"
+                          className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${risk.level === "LOW"
+                            ? "bg-emerald-100 text-emerald-700"
+                            : risk.level === "MEDIUM"
                               ? "bg-amber-100 text-amber-700"
                               : "bg-red-100 text-red-700"
-                          }`}
+                            }`}
                         >
                           {risk.level === "LOW" ? (
                             <TrendingUp className="h-3 w-3" />
@@ -790,19 +790,18 @@ export function NewValuationView() {
                             <p className="text-sm font-semibold">{risk.factor}</p>
                             <Badge
                               variant="secondary"
-                              className={`text-[10px] ${
-                                risk.level === "LOW"
-                                  ? "bg-emerald-100 text-emerald-700"
-                                  : risk.level === "MEDIUM"
+                              className={`text-[10px] ${risk.level === "LOW"
+                                ? "bg-emerald-100 text-emerald-700"
+                                : risk.level === "MEDIUM"
                                   ? "bg-amber-100 text-amber-700"
                                   : "bg-red-100 text-red-700"
-                              }`}
+                                }`}
                             >
                               {risk.level === "LOW"
                                 ? "Bajo"
                                 : risk.level === "MEDIUM"
-                                ? "Medio"
-                                : "Alto"}
+                                  ? "Medio"
+                                  : "Alto"}
                             </Badge>
                           </div>
                           <p className="text-xs text-muted-foreground mt-0.5">
@@ -885,10 +884,10 @@ export function NewValuationView() {
                     valuationResult.method === "HIBRIDO"
                       ? "Metodo Hibrido"
                       : valuationResult.method === "COMPARABLE"
-                      ? "Metodo de Comparables"
-                      : valuationResult.method === "INGRESO"
-                      ? "Metodo de Ingresos"
-                      : "Metodo de Costo",
+                        ? "Metodo de Comparables"
+                        : valuationResult.method === "INGRESO"
+                          ? "Metodo de Ingresos"
+                          : "Metodo de Costo",
                   valuatedAt: new Date().toISOString(),
                   aiAnalysis: valuationResult.aiAnalysis,
                   recommendations: valuationResult.recommendations,
