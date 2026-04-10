@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import ZAI from "z-ai-web-dev-sdk";
+import OpenAI from "openai";
 
 // Price reference data per property type (simulated market data)
 const marketData: Record<string, { avgPricePerSqm: number; rentalYield: number; capRate: number }> = {
@@ -95,9 +95,14 @@ export async function POST(request: NextRequest) {
     confidence = Math.min(0.95, confidence);
 
     // 2. Generate AI analysis
-    const zai = await ZAI.create();
+    let aiResponse;
+    const apiKey = process.env.OPENAI_API_KEY;
 
-    const aiPrompt = `Eres un valuador profesional de propiedades comerciales en México con más de 20 años de experiencia. Genera un análisis detallado de valuación para la siguiente propiedad:
+    if (apiKey) {
+      try {
+        const openai = new OpenAI({ apiKey });
+
+        const aiPrompt = `Eres un valuador profesional de propiedades comerciales en República Dominicana con más de 20 años de experiencia. Genera un análisis detallado de valuación para la siguiente propiedad:
 
 **Nombre:** ${name}
 **Dirección:** ${address}, ${city}, ${state}
@@ -132,42 +137,36 @@ Genera tu respuesta EXACTAMENTE en el siguiente formato JSON (sin texto adiciona
     {"name": "nombre", "address": "dirección", "area": número, "price": número, "pricePerSqm": número, "similarity": número entre 0.7 y 0.98}
   ],
   "valuationMethod": "HIBRIDO|COMPARABLE|INGRESO|COSTO"
-}
+}`;
 
-Incluye 3-4 propiedades comparables realistas para la zona de ${city}, ${state}. El análisis debe ser en español, profesional y detallado.`;
+        const completion = await openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [
+            {
+              role: "system",
+              content: "Eres un valuador inmobiliario profesional experto en el mercado dominicano. Siempre respondes únicamente con JSON válido.",
+            },
+            {
+              role: "user",
+              content: aiPrompt,
+            },
+          ],
+          response_format: { type: "json_object" },
+        });
 
-    let aiResponse;
-    try {
-      const completion = await zai.chat.completions.create({
-        messages: [
-          {
-            role: "assistant",
-            content: "Eres un valuador profesional mexicano. Siempre respondes en formato JSON válido.",
-          },
-          {
-            role: "user",
-            content: aiPrompt,
-          },
-        ],
-        thinking: { type: "disabled" },
-      });
-
-      const raw = completion.choices[0]?.message?.content || "";
-
-      // Extract JSON from response
-      const jsonMatch = raw.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        aiResponse = JSON.parse(jsonMatch[0]);
-      } else {
-        throw new Error("No JSON found in response");
+        const raw = completion.choices[0]?.message?.content || "";
+        aiResponse = JSON.parse(raw);
+      } catch (aiError) {
+        console.error("OpenAI analysis failed, using fallback:", aiError);
       }
-    } catch (aiError) {
-      // Fallback if AI fails
-      console.error("AI analysis failed, using fallback:", aiError);
+    }
+
+    // Fallback if AI fails or no API key
+    if (!aiResponse) {
       aiResponse = {
         aiAnalysis: `La propiedad "${name}" ubicada en ${city}, ${state}, presenta un valor de mercado estimado de $${marketValue.toLocaleString("es-MX")} USD, basado en un análisis de comparables de mercado y las características físicas del inmueble.
 
-Con un área de ${totalArea.toLocaleString()} m² y un estado de conservación ${buildingCondition}, la propiedad se posiciona dentro del segmento ${propertyType === "OFICINA" ? "clase A" : "intermedio"} del mercado comercial de ${city}. El precio por metro cuadrado de $${pricePerSqm.toLocaleString("es-MX")} se encuentra ${pricePerSqm > market.avgPricePerSqm ? "por arriba" : "dentro"} del rango promedio para el tipo de propiedad.
+Con un área de ${totalArea.toLocaleString()} m² y un estado de conservación ${buildingCondition}, la propiedad se posiciona dentro del segmento comercial de ${city}. El precio por metro cuadrado de $${pricePerSqm.toLocaleString("es-MX")} se encuentra dentro del rango promedio para el tipo de propiedad en esta zona geográfica.
 
 La ubicación en ${city} ofrece acceso a infraestructura urbana y servicios complementarios que impactan positivamente en el valor comercial del activo.`,
         recommendations: `1. Se recomienda realizar una inspección física detallada para validar el estado estructural y de acabados.
@@ -181,9 +180,9 @@ La ubicación en ${city} ofrece acceso a infraestructura urbana y servicios comp
           { factor: "Regulación", level: "LOW", description: "Cambios en normativas locales podrían impactar el uso o desarrollo de la propiedad" },
         ],
         comparables: [
-          { name: "Centro Empresarial Norte", address: `Blvd. Principal 120, ${city}`, area: Math.round(totalArea * 0.9), price: Math.round(marketValue * 0.88), pricePerSqm: Math.round(pricePerSqm * 0.96), similarity: 0.88 },
-          { name: "Plaza Comercial Sur", address: `Av. Central 340, ${city}`, area: Math.round(totalArea * 1.1), price: Math.round(marketValue * 1.05), pricePerSqm: Math.round(pricePerSqm * 1.02), similarity: 0.82 },
-          { name: "Edificio Corporativo Centro", address: `Calle Principal 80, ${city}`, area: Math.round(totalArea * 0.8), price: Math.round(marketValue * 0.78), pricePerSqm: Math.round(pricePerSqm * 0.94), similarity: 0.76 },
+          { name: "Zona Corporativa A", address: `Calle Central 12, ${city}`, area: Math.round(totalArea * 0.95), price: Math.round(marketValue * 0.92), pricePerSqm: Math.round(pricePerSqm * 0.97), similarity: 0.88 },
+          { name: "Edificio Comercial B", address: `Av. Libertad 45, ${city}`, area: Math.round(totalArea * 1.05), price: Math.round(marketValue * 1.08), pricePerSqm: Math.round(pricePerSqm * 1.03), similarity: 0.84 },
+          { name: "Local de Negocios C", address: `Plaza Principal, ${city}`, area: Math.round(totalArea * 0.8), price: Math.round(marketValue * 0.78), pricePerSqm: Math.round(pricePerSqm * 0.98), similarity: 0.79 },
         ],
         valuationMethod: "HIBRIDO",
       };
