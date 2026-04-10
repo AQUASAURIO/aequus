@@ -103,10 +103,10 @@ export function LoginView() {
                                 className="brightness-125 contrast-125"
                             />
                         </div>
-                        <CardTitle className="text-2xl font-bold tracking-tight text-foreground">
+                        <CardTitle className="text-2xl font-bold tracking-tight text-white">
                             {isSignUp ? "Crea tu cuenta" : "Bienvenido a Æquo"}
                         </CardTitle>
-                        <CardDescription className="text-center">
+                        <CardDescription className="text-zinc-400 text-center max-w-[240px]">
                             {isSignUp
                                 ? "Regístrate para comenzar a valuar con IA"
                                 : "Ingresa tus credenciales para acceder a la plataforma"}
@@ -115,9 +115,9 @@ export function LoginView() {
                     <CardContent>
                         <form onSubmit={handleAuth} className="space-y-4 pt-2">
                             <div className="space-y-2">
-                                <Label htmlFor="email">Email</Label>
-                                <div className="relative">
-                                    <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                <Label htmlFor="email" className="text-zinc-300">Email</Label>
+                                <div className="relative group">
+                                    <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500 group-focus-within:text-emerald-500 transition-colors" />
                                     <Input
                                         id="email"
                                         type="email"
@@ -125,28 +125,28 @@ export function LoginView() {
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         required
-                                        className="pl-10"
+                                        className="pl-10 h-11 bg-zinc-950/50 border-white/10 text-white placeholder:text-zinc-600 focus:border-emerald-500/50 focus:ring-emerald-500/20 transition-all rounded-xl"
                                     />
                                 </div>
                             </div>
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between">
-                                    <Label htmlFor="password">Contraseña</Label>
+                                    <Label htmlFor="password" title="Contraseña" className="text-zinc-300">Contraseña</Label>
                                     {!isSignUp && (
-                                        <Button variant="link" className="px-0 font-normal text-xs text-muted-foreground hover:text-primary">
+                                        <Button variant="link" className="px-0 font-normal text-xs text-zinc-500 hover:text-emerald-400">
                                             ¿Olvidaste tu contraseña?
                                         </Button>
                                     )}
                                 </div>
-                                <div className="relative">
-                                    <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                <div className="relative group">
+                                    <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500 group-focus-within:text-emerald-500 transition-colors" />
                                     <Input
                                         id="password"
                                         type="password"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         required
-                                        className="pl-10"
+                                        className="pl-10 h-11 bg-zinc-950/50 border-white/10 text-white placeholder:text-zinc-600 focus:border-emerald-500/50 focus:ring-emerald-500/20 transition-all rounded-xl"
                                     />
                                 </div>
                             </div>
@@ -167,8 +167,8 @@ export function LoginView() {
                             <div className="absolute inset-0 flex items-center">
                                 <span className="w-full border-t border-white/5" />
                             </div>
-                            <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-widest">
-                                <span className="bg-[#0c0c0e] px-3 text-zinc-500">O continúa con</span>
+                            <div className="relative flex justify-center text-[10px] uppercase font-black tracking-[0.2em]">
+                                <span className="bg-[#0c0c0e] px-4 text-zinc-500">O continúa con</span>
                             </div>
                         </div>
 
