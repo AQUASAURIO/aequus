@@ -100,6 +100,7 @@ export function LoginView() {
                                 alt="Æquo Logo"
                                 width={56}
                                 height={56}
+                                priority
                                 className="brightness-125 contrast-125"
                             />
                         </div>

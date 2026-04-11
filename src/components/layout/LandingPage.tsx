@@ -27,7 +27,7 @@ export function LandingPage({ onLogin }: LandingPageProps) {
                 <div className="container mx-auto flex h-16 items-center justify-between px-6">
                     <div className="flex items-center gap-2">
                         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-900 border border-white/10">
-                            <Image src="/favicon.png" alt="Logo" width={24} height={24} />
+                            <Image src="/favicon.png" alt="Logo" width={24} height={24} priority />
                         </div>
                         <span className="text-lg font-bold tracking-tight">ÆQUO</span>
                     </div>
