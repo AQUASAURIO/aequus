@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { useAppStore } from "@/lib/store";
+import type { UserProfile } from "@/lib/types";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { cn } from "@/lib/utils";
@@ -40,7 +41,7 @@ function ViewRenderer() {
 }
 
 export default function Home() {
-  const { sidebarOpen } = useAppStore();
+  const { sidebarOpen, setUser, user: storeUser } = useAppStore();
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showLogin, setShowLogin] = useState(false);
@@ -53,6 +54,34 @@ export default function Home() {
     const getSession = async () => {
       const { data: { session: currentSession } } = await supabase.auth.getSession();
       setSession(currentSession);
+
+      if (currentSession?.user) {
+        // Fetch full profile from public.users
+        const { data: profile, error } = await supabase
+          .from("users")
+          .select("*, plan:plans(*)")
+          .eq("id", currentSession.user.id)
+          .single();
+
+        if (profile) {
+          setUser(profile as UserProfile);
+        } else {
+          // Fallback if profile doesn't exist yet (e.g. first login before trigger)
+          setUser({
+            id: currentSession.user.id,
+            email: currentSession.user.email!,
+            name: currentSession.user.user_metadata?.full_name || currentSession.user.email!.split("@")[0],
+            role: "USER",
+            company: null,
+            valuationCount: 0,
+            isActive: true,
+            plan: null
+          });
+        }
+      } else {
+        setUser(null);
+      }
+
       setLoading(false);
     };
 

@@ -55,40 +55,35 @@ import {
   Map,
   Mountain,
   CheckCircle2,
+  Lock,
+  History,
+  TrendingUp,
+  Map as MapIcon,
 } from "lucide-react";
+import { useAppStore } from "@/lib/store";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 
-// Demo data
-const demoUser: UserProfile = {
-  id: "usr_001",
-  email: "carlos@grupoinmo.com",
-  name: "Carlos Mendoza",
-  company: "Grupo Inmobiliario Atlas",
-  role: "ADMIN",
-  plan: {
-    id: "b2b-pro",
-    name: "B2B Pro",
-    badge: "B2B",
-    description: "Para bancos regionales o fondos de inversión medianos",
-    customerType: "Banco regional / fondo mediano",
-    periodicity: "annual",
-    priceMonthly: 1658,
-    priceAnnual: 19900,
-    priceOneTime: null,
-    maxValuations: 200,
-    maxProperties: 500,
-    valuationPeriod: "year",
-    extraValuationPrice: 90,
-    maxUsers: 10,
-    supportLevel: "Chat + Email 24h",
-    features: [],
-    isActive: true,
-    highlighted: true,
-  },
-  valuationCount: 73,
-  isActive: true,
-};
-
-const demoTeam: any[] = [];
+// ── Types & Constants ──────────────────────────────────────────────────────────
+const demoTeam: any[] = [
+  { id: "1", name: "Ana Martínez", email: "ana@atlas.com", role: "MANAGER", status: "Activo", lastActive: "Hace 2h" },
+  { id: "2", name: "Pedro Soto", email: "pedro@atlas.com", role: "USER", status: "Activo", lastActive: "Hace 1d" }
+];
 
 const roleColors: Record<UserRole, string> = {
   ADMIN: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
@@ -166,11 +161,26 @@ const supabase = createClient(
 );
 
 export function SettingsView() {
+  const { user: storeUser, isAdmin, updateUserProfile } = useAppStore();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [showApiKey, setShowApiKey] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [user, setUser] = useState<UserProfile>(demoUser);
+  const [user, setUser] = useState<UserProfile | null>(storeUser);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  // Invite state
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState<UserRole>("USER");
+  const [isInviteOpen, setIsInviteOpen] = useState(false);
+  const [inviting, setInviting] = useState(false);
+
+  // Edit profile state
+  const [editName, setEditName] = useState(storeUser?.name || "");
+  const [editCompany, setEditCompany] = useState(storeUser?.company || "");
+  const [editRnc, setEditRnc] = useState(storeUser?.rnc || "");
+  const [editWebsite, setEditWebsite] = useState(storeUser?.website || "");
+  const [editCompanyCode, setEditCompanyCode] = useState(storeUser?.companyCode || "");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -214,16 +224,69 @@ export function SettingsView() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const isAdmin = user.role === "ADMIN";
+  const handleSaveProfile = async () => {
+    try {
+      const { error } = await supabase
+        .from("users")
+        .update({
+          name: editName,
+          company: editCompany,
+          rnc: editRnc,
+          website: editWebsite,
+          company_code: editCompanyCode,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", user?.id);
 
-  const maxVal = user.plan?.maxValuations ?? 0;
-  const maxProp = user.plan?.maxProperties ?? 0;
-  const valProgress =
-    maxVal > 0 ? Math.min((user.valuationCount / maxVal) * 100, 100) : 0;
-  const propProgress =
-    maxProp > 0 ? Math.min((12 / maxProp) * 100, 100) : 0;
+      if (error) throw error;
 
-  if (loading) {
+      updateUserProfile({
+        name: editName,
+        company: editCompany,
+        rnc: editRnc,
+        website: editWebsite,
+        companyCode: editCompanyCode
+      });
+
+      toast({
+        title: "Perfil actualizado",
+        description: "Tus cambios han sido guardados exitosamente.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error al guardar",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleInvite = async () => {
+    if (!inviteEmail) return;
+    setInviting(true);
+    try {
+      // In a real app, this would send an email and create a record in 'invitations'
+      // For now, we'll just simulate success
+      await new Promise(r => setTimeout(r, 1000));
+
+      toast({
+        title: "Invitación enviada",
+        description: `Se ha enviado una invitación a ${inviteEmail}.`,
+      });
+      setIsInviteOpen(false);
+      setInviteEmail("");
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setInviting(false);
+    }
+  };
+
+  if (loading || !user) {
     return (
       <div className="flex h-[400px] items-center justify-center">
         <Sparkles className="h-8 w-8 animate-pulse text-aequo-gold" />
@@ -231,23 +294,43 @@ export function SettingsView() {
     );
   }
 
+  const isUserAdmin = isAdmin();
+
+  // Usage metrics
+  const maxVal = user.plan?.maxValuations ?? 0;
+  const maxProp = user.plan?.maxProperties ?? 0;
+  const valProgress =
+    maxVal > 0 ? Math.min((user.valuationCount / maxVal) * 100, 100) : 0;
+  const propProgress =
+    maxProp > 0 ? Math.min((12 / maxProp) * 100, 100) : 0;
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className={`grid w-full lg:w-auto ${isAdmin ? "grid-cols-4" : "grid-cols-2"}`}>
+        <TabsList className={`grid w-full lg:w-auto ${isUserAdmin ? "grid-cols-4" : "grid-cols-2"}`}>
           <TabsTrigger value="profile" className="gap-2 text-sm px-8">
             <User className="h-4 w-4 hidden sm:block" />
             Perfil
           </TabsTrigger>
-          <TabsTrigger value="plans" className="gap-2 text-sm px-8">
-            <CreditCard className="h-4 w-4 hidden sm:block" />
-            Planes
-          </TabsTrigger>
-          {isAdmin && (
-            <TabsTrigger value="team" className="gap-2 text-sm px-8">
-              <Users className="h-4 w-4 hidden sm:block" />
-              Equipo
-            </TabsTrigger>
+          {isUserAdmin && (
+            <>
+              <TabsTrigger value="plans" className="gap-2 text-sm px-8">
+                <CreditCard className="h-4 w-4 hidden sm:block" />
+                Suscripción
+              </TabsTrigger>
+              <TabsTrigger value="team" className="gap-2 text-sm px-8">
+                <Users className="h-4 w-4 hidden sm:block" />
+                Equipo
+              </TabsTrigger>
+              <TabsTrigger value="activity" className="gap-2 text-sm px-8">
+                <History className="h-4 w-4 hidden sm:block" />
+                Actividad
+              </TabsTrigger>
+              <TabsTrigger value="api" className="gap-2 text-sm px-8">
+                <Key className="h-4 w-4 hidden sm:block" />
+                API
+              </TabsTrigger>
+            </>
           )}
         </TabsList>
 
@@ -429,28 +512,72 @@ export function SettingsView() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="name">Nombre completo</Label>
-                  <Input id="name" defaultValue={user.name} />
+                  <Input
+                    id="name"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <Input
                     id="email"
                     type="email"
-                    defaultValue={user.email}
+                    value={user.email}
                     disabled
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="company">Empresa</Label>
-                  <Input id="company" defaultValue={user.company ?? ""} />
+                  <Label htmlFor="company">Empresa / Institución</Label>
+                  <Input
+                    id="company"
+                    value={editCompany}
+                    onChange={(e) => setEditCompany(e.target.value)}
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="password">Nueva contraseña</Label>
-                  <Input id="password" type="password" placeholder="••••••••" />
+                  <Label htmlFor="website">Sitio Web</Label>
+                  <Input
+                    id="website"
+                    placeholder="https://su-empresa.com"
+                    value={editWebsite}
+                    onChange={(e) => setEditWebsite(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="rnc">RNC / Identificación Fiscal</Label>
+                  <Input
+                    id="rnc"
+                    placeholder="Escriba el RNC"
+                    value={editRnc}
+                    onChange={(e) => setEditRnc(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="companyCode">Código de Empresa (Invitación)</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="companyCode"
+                      value={editCompanyCode}
+                      onChange={(e) => setEditCompanyCode(e.target.value)}
+                      placeholder="Ej: ATLS-2024"
+                    />
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setEditCompanyCode(Math.random().toString(36).substring(2, 8).toUpperCase())}
+                      title="Generar código"
+                    >
+                      <Zap className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
               <div className="mt-4 flex justify-end">
-                <Button className="bg-primary hover:bg-primary/90">
+                <Button
+                  className="bg-primary hover:bg-primary/90"
+                  onClick={handleSaveProfile}
+                >
                   Guardar Cambios
                 </Button>
               </div>
@@ -723,10 +850,64 @@ export function SettingsView() {
                   Gestiona los accesos de tu equipo
                 </CardDescription>
               </div>
-              <Button className="bg-primary hover:bg-primary/90 gap-2">
-                <Plus className="h-4 w-4" />
-                Invitar
-              </Button>
+              <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
+                <DialogTrigger asChild>
+                  <Button className="bg-primary hover:bg-primary/90 gap-2">
+                    <Plus className="h-4 w-4" />
+                    Invitar
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Invitar miembro al equipo</DialogTitle>
+                    <DialogDescription>
+                      Envía una invitación para unirse a {user.company || "tu equipo"}.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="email-invite">Correo electrónico</Label>
+                      <Input
+                        id="email-invite"
+                        placeholder="ejemplo@empresa.com"
+                        value={inviteEmail}
+                        onChange={(e) => setInviteEmail(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="role-invite">Rol</Label>
+                      <Select
+                        value={inviteRole}
+                        onValueChange={(v) => setInviteRole(v as UserRole)}
+                      >
+                        <SelectTrigger id="role-invite">
+                          <SelectValue placeholder="Seleccionar rol" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="USER">Usuario (Lectura/Escritura)</SelectItem>
+                          <SelectItem value="MANAGER">Gestor (Aprobación)</SelectItem>
+                          <SelectItem value="ADMIN">Administrador (Control total)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsInviteOpen(false)}
+                      disabled={inviting}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      onClick={handleInvite}
+                      disabled={inviting || !inviteEmail}
+                    >
+                      {inviting ? "Enviando..." : "Enviar invitación"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">

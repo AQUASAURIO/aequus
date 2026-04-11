@@ -147,3 +147,79 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { id, ...updates } = body;
+
+    if (!id) {
+      return NextResponse.json({ error: "ID de propiedad requerido" }, { status: 400 });
+    }
+
+    // Map camelCase to snake_case for DB
+    const dbUpdates: any = { ...updates };
+    if (updates.zipCode) dbUpdates.zip_code = updates.zipCode;
+    if (updates.propertyType) dbUpdates.property_type = updates.propertyType;
+    if (updates.totalArea) dbUpdates.total_area = parseFloat(updates.totalArea);
+    if (updates.constructedArea) dbUpdates.constructed_area = parseFloat(updates.constructedArea);
+    if (updates.lotArea) dbUpdates.lot_area = parseFloat(updates.lotArea);
+    if (updates.parkingSpaces) dbUpdates.parking_spaces = parseInt(updates.parkingSpaces);
+    if (updates.bathrooms) dbUpdates.bathrooms = parseInt(updates.bathrooms);
+    if (updates.yearBuilt) dbUpdates.year_built = parseInt(updates.yearBuilt);
+    if (updates.floors) dbUpdates.floors = parseInt(updates.floors);
+    if (updates.currentUse) dbUpdates.current_use = updates.currentUse;
+    if (updates.buildingCondition) dbUpdates.building_condition = updates.buildingCondition;
+
+    // Remove original camelCase fields to avoid DB errors
+    delete dbUpdates.zipCode;
+    delete dbUpdates.propertyType;
+    delete dbUpdates.totalArea;
+    delete dbUpdates.constructedArea;
+    delete dbUpdates.lotArea;
+    delete dbUpdates.parkingSpaces;
+    delete dbUpdates.yearBuilt;
+    delete dbUpdates.currentUse;
+    delete dbUpdates.buildingCondition;
+
+    const { data: property, error } = await supabase
+      .from("properties")
+      .update({
+        ...dbUpdates,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id)
+      .eq("user_id", user.id) // Security check
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return NextResponse.json({
+      ...property,
+      zipCode: property.zip_code,
+      propertyType: property.property_type,
+      totalArea: property.total_area,
+      constructedArea: property.constructed_area,
+      lotArea: property.lot_area,
+      parkingSpaces: property.parking_spaces,
+      yearBuilt: property.year_built,
+      currentUse: property.current_use,
+      buildingCondition: property.building_condition,
+      updatedAt: property.updated_at,
+    });
+  } catch (error) {
+    console.error("Error updating property:", error);
+    return NextResponse.json(
+      { error: "Error al actualizar la propiedad" },
+      { status: 500 },
+    );
+  }
+}

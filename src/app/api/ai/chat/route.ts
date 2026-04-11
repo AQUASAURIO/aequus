@@ -212,7 +212,7 @@ async function createOpenAICompletion(
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
       const completion = await client.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "gpt-4o", // Locked to high-performance model
         messages: messages.map((m) => ({
           role: m.role as "system" | "user" | "assistant",
           content: m.content,
@@ -224,7 +224,12 @@ async function createOpenAICompletion(
       const content = completion.choices[0]?.message?.content;
       if (!content) throw new Error("Empty response from OpenAI");
       return content;
-    } catch (error) {
+    } catch (error: any) {
+      // Specific handling for quota/429 errors
+      if (error?.status === 429 || error?.code === "insufficient_quota") {
+        throw new Error("QUOTA_EXCEEDED: Se ha alcanzado el límite de uso de la IA. Por favor, contacta al administrador o añade créditos a tu cuenta de OpenAI.");
+      }
+
       const isLast = attempt === retries;
       if (isLast) {
         console.error(`OpenAI failed after ${retries + 1} attempts:`, error);

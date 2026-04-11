@@ -255,7 +255,7 @@ const panelVariants = {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { duration: 0.3, ease: "easeOut" },
+    transition: { duration: 0.3, ease: "easeInOut" },
   },
 };
 
@@ -345,6 +345,17 @@ export function AIChatPanel() {
         const data = await response.json();
 
         if (!response.ok) {
+          // Special handling for quota errors
+          if (data.error && data.error.includes("QUOTA_EXCEEDED")) {
+            const quotaMsg: AiChatMessage = {
+              id: generateId(),
+              role: "assistant",
+              content: `### ⚠️ Límite de Uso Alcanzado\n\n${data.error.split("QUOTA_EXCEEDED: ")[1]}\n\nPor favor, contacta a ventas o añade créditos en tu panel de control para continuar usando el asistente con GPT-4o.`,
+              timestamp: new Date(),
+            };
+            addAiChatMessage(quotaMsg);
+            return;
+          }
           throw new Error(data.error || "Error al enviar mensaje");
         }
 

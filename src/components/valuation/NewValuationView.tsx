@@ -120,6 +120,7 @@ export function NewValuationView() {
   const [mapCoords, setMapCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [selectedCountry, setSelectedCountry] = useState("DO");
   const [valuationResult, setValuationResult] = useState<ValuationResult | null>(null);
+  const [persistentId, setPersistentId] = useState<string | null>(null);
   const { setCurrentView, navigateToProperty } = useAppStore();
 
   const form = useForm<FormData>({
@@ -153,10 +154,49 @@ export function NewValuationView() {
 
   const nextStep = async () => {
     let valid = false;
+    const values = form.getValues();
+
     if (step === 1) {
       valid = await form.trigger(["name", "address", "country", "city", "state", "zipCode"]);
+      if (valid) {
+        // Auto-save step 1 (Create or Update)
+        try {
+          const method = persistentId ? "PATCH" : "POST";
+          const res = await fetch("/api/properties", {
+            method,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              ...(persistentId ? { id: persistentId } : {}),
+              ...values,
+              status: "BORRADOR",
+            }),
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.id) setPersistentId(data.id);
+          }
+        } catch (e) {
+          console.warn("Auto-save failed:", e);
+        }
+      }
     } else if (step === 2) {
       valid = await form.trigger(["propertyType", "totalArea", "floors", "buildingCondition"]);
+      if (valid && persistentId) {
+        // Auto-save step 2
+        try {
+          await fetch("/api/properties", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              id: persistentId,
+              ...values,
+              features: selectedFeatures,
+            }),
+          });
+        } catch (e) {
+          console.warn("Auto-save failed:", e);
+        }
+      }
     }
     if (valid) setStep(step + 1);
   };
@@ -167,16 +207,27 @@ export function NewValuationView() {
     setIsValuating(true);
     const values = form.getValues();
     try {
-      // 1. Create property first to get ID
-      const propRes = await fetch("/api/properties", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...values, features: selectedFeatures }),
-      });
+      // 1. Create or Update property
+      let propertyId = persistentId;
 
-      if (!propRes.ok) throw new Error("Error al crear la propiedad");
-      const property = await propRes.json();
-      const propertyId = property.id;
+      if (!propertyId) {
+        const propRes = await fetch("/api/properties", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...values, features: selectedFeatures }),
+        });
+        if (!propRes.ok) throw new Error("Error al crear la propiedad");
+        const property = await propRes.json();
+        propertyId = property.id;
+        setPersistentId(propertyId);
+      } else {
+        // Final update before valuation
+        await fetch("/api/properties", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: propertyId, ...values, features: selectedFeatures }),
+        });
+      }
 
       // 2. Run AI Valuation
       const valRes = await fetch("/api/valuations", {

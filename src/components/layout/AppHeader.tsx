@@ -39,25 +39,19 @@ export function AppHeader() {
     aiChatMessages,
     notifications,
     markAsRead,
-    clearNotifications
+    clearNotifications,
+    user,
+    setCurrentView
   } = useAppStore();
-  const [user, setUser] = useState<any>(null);
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-
-  useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-    };
-    getUser();
-  }, [supabase.auth]);
+  // No local user state needed anymore
 
   const handleLogout = async () => {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
     await supabase.auth.signOut();
-    window.location.reload();
+    window.location.href = "/";
   };
 
   return (
@@ -179,7 +173,7 @@ export function AppHeader() {
             <Button variant="ghost" size="icon" className="rounded-full h-8 w-8 ml-2">
               <Avatar className="h-8 w-8">
                 <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
-                  {user?.email?.[0].toUpperCase() || "Æ"}
+                  {(user?.name?.[0] || user?.email?.[0] || "Æ").toUpperCase()}
                 </AvatarFallback>
               </Avatar>
             </Button>
@@ -194,7 +188,10 @@ export function AppHeader() {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="cursor-pointer">
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onClick={() => setCurrentView("settings")}
+            >
               <User className="mr-2 h-4 w-4" />
               <span>Perfil</span>
             </DropdownMenuItem>

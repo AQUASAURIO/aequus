@@ -29,8 +29,13 @@ const navItems = [
 ];
 
 export function AppSidebar() {
-  const { currentView, sidebarOpen, toggleSidebar, setCurrentView, toggleAiChat } = useAppStore();
+  const { currentView, sidebarOpen, toggleSidebar, setCurrentView, toggleAiChat, user } = useAppStore();
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
+
+  const filteredNavItems = navItems.filter(item => {
+    if (item.id === "settings" && user?.role !== "ADMIN") return false;
+    return true;
+  });
 
   useEffect(() => {
     const checkConnection = async () => {
@@ -56,23 +61,21 @@ export function AppSidebar() {
           <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-border/50">
             <img src="/aequo_logo.png" alt="Æquo" className="h-8 w-8 object-contain" />
           </div>
-          {sidebarOpen && (
-            <div className="overflow-hidden">
-              <h1 className="text-lg font-bold tracking-tight text-sidebar-foreground">
-                ÆQUO
-              </h1>
-              <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-sidebar-foreground/40">
-                Commercial Valuation
-              </p>
-            </div>
-          )}
+          <div className="overflow-hidden">
+            <h1 className="text-lg font-bold tracking-tight text-sidebar-foreground truncate">
+              {user?.company || "ÆQUO"}
+            </h1>
+            <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-sidebar-foreground/40">
+              {user?.company ? "Corporate Workspace" : "Commercial Valuation"}
+            </p>
+          </div>
         </div>
 
         <Separator className="bg-sidebar-border" />
 
         {/* Navigation */}
         <nav className="flex-1 space-y-1 px-3 py-4">
-          {navItems.map((item) => {
+          {filteredNavItems.map((item) => {
             const isActive = currentView === item.id;
             const Icon = item.icon;
 
@@ -126,7 +129,7 @@ export function AppSidebar() {
             {sidebarOpen && (
               <div className="flex items-center justify-between w-full">
                 <span>Asistente IA</span>
-                <span className="text-[9px] uppercase tracking-wider text-sidebar-primary/60 font-medium">GPT / Claude</span>
+                <span className="text-[9px] uppercase tracking-wider text-sidebar-primary/60 font-medium">GPT-4o</span>
               </div>
             )}
           </button>

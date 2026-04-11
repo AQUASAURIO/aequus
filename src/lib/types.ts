@@ -146,6 +146,9 @@ export interface UserProfile {
   plan: Plan | null;
   valuationCount: number;
   isActive: boolean;
+  rnc?: string;
+  companyCode?: string;
+  website?: string;
 }
 
 // Navigation types

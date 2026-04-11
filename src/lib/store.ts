@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { AppView } from "./types";
+import type { AppView, UserProfile } from "./types";
 
 // ── AI Chat Types ────────────────────────────────────────────────────────────
 
@@ -28,6 +28,12 @@ interface AppState {
   setCurrentView: (view: AppView) => void;
   setSelectedProperty: (id: string) => void;
   navigateToProperty: (id: string) => void;
+
+  // User & Identity
+  user: UserProfile | null;
+  setUser: (user: UserProfile | null) => void;
+  updateUserProfile: (updates: Partial<UserProfile>) => void;
+  isAdmin: () => boolean;
 
   // Sidebar
   sidebarOpen: boolean;
@@ -61,6 +67,18 @@ export const useAppStore = create<AppState>((set) => ({
     set({ currentView: view, selectedPropertyId: view === "property-detail" ? undefined : null }),
   setSelectedProperty: (id) => set({ selectedPropertyId: id, currentView: "property-detail" }),
   navigateToProperty: (id) => set({ selectedPropertyId: id, currentView: "property-detail" }),
+
+  // User & Identity
+  user: null,
+  setUser: (user) => set({ user }),
+  updateUserProfile: (updates) =>
+    set((state) => ({
+      user: state.user ? { ...state.user, ...updates } : null,
+    })),
+  isAdmin: () => {
+    const state = useAppStore.getState();
+    return state.user?.role === "ADMIN";
+  },
 
   // Sidebar
   sidebarOpen: true,
