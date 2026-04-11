@@ -10,6 +10,15 @@ export interface AiChatMessage {
   timestamp: Date;
 }
 
+export interface AppNotification {
+  id: string;
+  title: string;
+  message: string;
+  type: "valuation" | "property" | "system";
+  timestamp: Date;
+  read: boolean;
+}
+
 // ── Store Interface ──────────────────────────────────────────────────────────
 
 interface AppState {
@@ -36,6 +45,12 @@ interface AppState {
   setAiChatLoading: (loading: boolean) => void;
   clearAiChat: () => void;
   setAiChatSessionId: (id: string | null) => void;
+
+  // Notifications
+  notifications: AppNotification[];
+  addNotification: (notification: Omit<AppNotification, "id" | "timestamp" | "read">) => void;
+  markAsRead: (id: string) => void;
+  clearNotifications: () => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -69,4 +84,44 @@ export const useAppStore = create<AppState>((set) => ({
       aiChatLoading: false,
     }),
   setAiChatSessionId: (id) => set({ aiChatSessionId: id }),
+
+  // Notifications
+  notifications: [
+    {
+      id: "1",
+      title: "Valuación completada",
+      message: "La valuación para 'Torre Acrópolis' ha sido procesada exitosamente.",
+      type: "valuation",
+      timestamp: new Date(Date.now() - 1000 * 60 * 15), // 15 min ago
+      read: false,
+    },
+    {
+      id: "2",
+      title: "Nueva propiedad",
+      message: "Se ha añadido una nueva propiedad a tu portafolio.",
+      type: "property",
+      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
+      read: false,
+    },
+    {
+      id: "3",
+      title: "Bienvenido a Æquo",
+      message: "Tu cuenta ha sido configurada correctamente.",
+      type: "system",
+      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 24 hours ago
+      read: true,
+    },
+  ],
+  addNotification: (n) =>
+    set((state) => ({
+      notifications: [
+        { ...n, id: Math.random().toString(36).substr(2, 9), timestamp: new Date(), read: false },
+        ...state.notifications,
+      ],
+    })),
+  markAsRead: (id) =>
+    set((state) => ({
+      notifications: state.notifications.map((n) => (n.id === id ? { ...n, read: true } : n)),
+    })),
+  clearNotifications: () => set({ notifications: [] }),
 }));

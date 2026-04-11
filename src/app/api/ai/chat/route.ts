@@ -45,7 +45,11 @@ function getDefaultProvider(): AiProvider {
 
 function getOpenAIClient(): OpenAI | null {
   const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) return null;
+  if (!apiKey) {
+    console.error(`[AI Chat API] OPENAI_API_KEY is missing/empty!`);
+    return null;
+  }
+  console.log(`[AI Chat API] OpenAI client initialized (Key length: ${apiKey.length})`);
   return new OpenAI({ apiKey });
 }
 
@@ -122,53 +126,53 @@ function buildContextBlock(context?: ChatRequestBody["context"]): string {
     const data = context.propertyData;
     blocks.push(
       `\n## Contexto Actual — Detalle de Propiedad\nEl usuario está viendo los detalles de una propiedad específica. Datos disponibles:\n` +
-        `- **Nombre:** ${data.name || "N/A"}\n` +
-        `- **Dirección:** ${data.address || "N/A"}${data.city ? ", " + data.city : ""}${data.state ? ", " + data.state : ""}\n` +
-        `- **Tipo:** ${data.propertyType || "N/A"}\n` +
-        `- **Área Total:** ${data.totalArea ? data.totalArea + " m²" : "N/A"}\n` +
-        `- **Estado de Conservación:** ${data.buildingCondition || "N/A"}\n` +
-        (data.yearBuilt ? `- **Año de Construcción:** ${data.yearBuilt}\n` : "") +
-        (data.features && Array.isArray(data.features) && data.features.length > 0
-          ? `- **Características:** ${(data.features as string[]).join(", ")}\n`
-          : "") +
-        `- **ID de Propiedad:** ${context.propertyId || "N/A"}\n\n` +
-        `Referencia esta propiedad en tus respuestas cuando sea relevante. Puedes hacer análisis, sugerencias de valor, o comparaciones con el mercado.`
+      `- **Nombre:** ${data.name || "N/A"}\n` +
+      `- **Dirección:** ${data.address || "N/A"}${data.city ? ", " + data.city : ""}${data.state ? ", " + data.state : ""}\n` +
+      `- **Tipo:** ${data.propertyType || "N/A"}\n` +
+      `- **Área Total:** ${data.totalArea ? data.totalArea + " m²" : "N/A"}\n` +
+      `- **Estado de Conservación:** ${data.buildingCondition || "N/A"}\n` +
+      (data.yearBuilt ? `- **Año de Construcción:** ${data.yearBuilt}\n` : "") +
+      (data.features && Array.isArray(data.features) && data.features.length > 0
+        ? `- **Características:** ${(data.features as string[]).join(", ")}\n`
+        : "") +
+      `- **ID de Propiedad:** ${context.propertyId || "N/A"}\n\n` +
+      `Referencia esta propiedad en tus respuestas cuando sea relevante. Puedes hacer análisis, sugerencias de valor, o comparaciones con el mercado.`
     );
   }
 
   if (context.view === "new-valuation") {
     blocks.push(
       `\n## Contexto Actual — Nueva Valuación\nEl usuario está en el proceso de crear una nueva valuación. ` +
-        `Ofrécele guía sobre:\n` +
-        `- Cómo completar el formulario de valuación paso a paso\n` +
-        `- Qué datos son importantes para una valuación precisa\n` +
-        `- Metodologías de valuación disponibles (comparables, ingresos, costo, híbrido)\n` +
-        `- Factores que influyen en el valor comercial\n` +
-        `- Consideraciones del mercado dominicano actual`
+      `Ofrécele guía sobre:\n` +
+      `- Cómo completar el formulario de valuación paso a paso\n` +
+      `- Qué datos son importantes para una valuación precisa\n` +
+      `- Metodologías de valuación disponibles (comparables, ingresos, costo, híbrido)\n` +
+      `- Factores que influyen en el valor comercial\n` +
+      `- Consideraciones del mercado dominicano actual`
     );
   }
 
   if (context.view === "market-analysis") {
     blocks.push(
       `\n## Contexto Actual — Análisis de Mercado\nEl usuario está explorando el análisis de mercado. ` +
-        `Proporciona información sobre:\n` +
-        `- Tendencias del mercado inmobiliario comercial dominicano\n` +
-        `- Zonas con mayor actividad y precios promedio\n` +
-        `- Volúmenes de transacción por tipo de propiedad\n` +
-        `- Tasas de ocupación y rendimientos (cap rates)\n` +
-        `- Perspectivas y oportunidades de inversión\n` +
-        `- Comparaciones entre zonas (Piantini, Naco, Gazcue, Bávaro, etc.)`
+      `Proporciona información sobre:\n` +
+      `- Tendencias del mercado inmobiliario comercial dominicano\n` +
+      `- Zonas con mayor actividad y precios promedio\n` +
+      `- Volúmenes de transacción por tipo de propiedad\n` +
+      `- Tasas de ocupación y rendimientos (cap rates)\n` +
+      `- Perspectivas y oportunidades de inversión\n` +
+      `- Comparaciones entre zonas (Piantini, Naco, Gazcue, Bávaro, etc.)`
     );
   }
 
   if (context.view === "properties") {
     blocks.push(
       `\n## Contexto Actual — Directorio de Propiedades\nEl usuario está navegando el directorio de propiedades. ` +
-        `Puedes ayudar con:\n` +
-        `- Búsqueda y filtrado de propiedades\n` +
-        `- Comparaciones entre propiedades\n` +
-        `- Criterios de selección para inversión\n` +
-        `- Recomendaciones basadas en tipo de propiedad o zona`
+      `Puedes ayudar con:\n` +
+      `- Búsqueda y filtrado de propiedades\n` +
+      `- Comparaciones entre propiedades\n` +
+      `- Criterios de selección para inversión\n` +
+      `- Recomendaciones basadas en tipo de propiedad o zona`
     );
   }
 

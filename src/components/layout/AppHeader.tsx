@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
-import { Bell, Search, Menu, Sparkles, LogOut, User } from "lucide-react";
+import { Bell, Search, Menu, Sparkles, LogOut, User, Activity, Building2, Info, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +17,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const viewTitles: Record<string, string> = {
   dashboard: "Dashboard",
@@ -28,7 +30,17 @@ const viewTitles: Record<string, string> = {
 };
 
 export function AppHeader() {
-  const { currentView, sidebarOpen, toggleSidebar, toggleAiChat, aiChatOpen, aiChatMessages } = useAppStore();
+  const {
+    currentView,
+    sidebarOpen,
+    toggleSidebar,
+    toggleAiChat,
+    aiChatOpen,
+    aiChatMessages,
+    notifications,
+    markAsRead,
+    clearNotifications
+  } = useAppStore();
   const [user, setUser] = useState<any>(null);
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -101,12 +113,65 @@ export function AppHeader() {
         </Button>
 
         {/* Notifications */}
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-5 w-5" />
-          <Badge className="absolute -right-0.5 -top-0.5 h-4 min-w-4 px-1 text-[10px]">
-            3
-          </Badge>
-        </Button>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="ghost" size="icon" className="relative cursor-pointer">
+              <Bell className="h-5 w-5" />
+              {notifications.filter(n => !n.read).length > 0 && (
+                <Badge className="absolute -right-0.5 -top-0.5 h-4 min-w-4 px-1 text-[10px] bg-destructive text-white border-0">
+                  {notifications.filter(n => !n.read).length}
+                </Badge>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-80 p-0" align="end">
+            <div className="flex items-center justify-between border-b px-4 py-3">
+              <h3 className="text-sm font-semibold">Notificaciones</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 text-[10px] uppercase tracking-wider font-bold"
+                onClick={clearNotifications}
+              >
+                Limpiar todo
+              </Button>
+            </div>
+            <ScrollArea className="h-[300px]">
+              {notifications.length === 0 ? (
+                <div className="flex flex-col items-center justify-center p-8 text-center">
+                  <Bell className="h-8 w-8 text-muted-foreground/20 mb-2" />
+                  <p className="text-xs text-muted-foreground">No tienes notificaciones pendientes</p>
+                </div>
+              ) : (
+                <div className="flex flex-col">
+                  {notifications.map((n) => (
+                    <button
+                      key={n.id}
+                      onClick={() => markAsRead(n.id)}
+                      className={cn(
+                        "flex flex-col gap-1 border-b px-4 py-3 text-left transition-colors hover:bg-muted/50",
+                        !n.read && "bg-primary/5"
+                      )}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          {n.type === "valuation" && <Activity className="h-3.5 w-3.5 text-primary" />}
+                          {n.type === "property" && <Building2 className="h-3.5 w-3.5 text-emerald-500" />}
+                          {n.type === "system" && <Info className="h-3.5 w-3.5 text-blue-500" />}
+                          <span className="text-[11px] font-bold uppercase tracking-tight">{n.title}</span>
+                        </div>
+                        <span className="text-[10px] text-muted-foreground">
+                          {new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground line-clamp-2">{n.message}</p>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </ScrollArea>
+          </PopoverContent>
+        </Popover>
 
         {/* User Dropdown */}
         <DropdownMenu>

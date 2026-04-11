@@ -88,40 +88,7 @@ const demoUser: UserProfile = {
   isActive: true,
 };
 
-const demoTeam = [
-  {
-    id: "tm_001",
-    name: "Carlos Mendoza",
-    email: "carlos@grupoinmo.com",
-    role: "ADMIN" as UserRole,
-    status: "Activo",
-    lastActive: "Hace 5 min",
-  },
-  {
-    id: "tm_002",
-    name: "María López",
-    email: "maria@grupoinmo.com",
-    role: "MANAGER" as UserRole,
-    status: "Activo",
-    lastActive: "Hace 1 hora",
-  },
-  {
-    id: "tm_003",
-    name: "Roberto Sánchez",
-    email: "roberto@grupoinmo.com",
-    role: "USER" as UserRole,
-    status: "Activo",
-    lastActive: "Hace 3 horas",
-  },
-  {
-    id: "tm_004",
-    name: "Ana Torres",
-    email: "ana@grupoinmo.com",
-    role: "USER" as UserRole,
-    status: "Inactivo",
-    lastActive: "Hace 2 semanas",
-  },
-];
+const demoTeam: any[] = [];
 
 const roleColors: Record<UserRole, string> = {
   ADMIN: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
@@ -277,16 +244,10 @@ export function SettingsView() {
             Planes
           </TabsTrigger>
           {isAdmin && (
-            <>
-              <TabsTrigger value="team" className="gap-2 text-sm px-8">
-                <Users className="h-4 w-4 hidden sm:block" />
-                Equipo
-              </TabsTrigger>
-              <TabsTrigger value="api" className="gap-2 text-sm px-8">
-                <Key className="h-4 w-4 hidden sm:block" />
-                API Keys
-              </TabsTrigger>
-            </>
+            <TabsTrigger value="team" className="gap-2 text-sm px-8">
+              <Users className="h-4 w-4 hidden sm:block" />
+              Equipo
+            </TabsTrigger>
           )}
         </TabsList>
 
