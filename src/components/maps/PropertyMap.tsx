@@ -3,6 +3,7 @@
 import { useState, useMemo, useCallback } from "react";
 import { MapContainer, TileLayer, Marker, Popup, CircleMarker, useMap } from "react-leaflet";
 import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import { Search, Layers, RotateCcw, MapPin, Building2, Satellite, Map, Mountain } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
