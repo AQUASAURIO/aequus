@@ -50,10 +50,7 @@ export function AppHeader() {
 
   return (
     <header
-      className={cn(
-        "sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-card/80 px-6 backdrop-blur-md transition-all duration-300",
-        sidebarOpen ? "ml-64" : "ml-[70px]"
-      )}
+      className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-card/80 px-4 md:px-6 backdrop-blur-md transition-all duration-300 w-full"
     >
       <div className="flex items-center gap-4">
         {!sidebarOpen && (
@@ -62,12 +59,12 @@ export function AppHeader() {
           </Button>
         )}
         <div>
-          <h2 className="text-lg font-semibold text-foreground">
+          <h2 className="text-base md:text-lg font-semibold text-foreground leading-tight truncate max-w-[150px] sm:max-w-none">
             {viewTitles[currentView] || "Æquo"}
           </h2>
-          <p className="text-xs text-muted-foreground">
+          <p className="hidden sm:block text-[10px] md:text-xs text-muted-foreground line-clamp-1">
             {currentView === "dashboard" && "Resumen general de tu portafolio"}
-            {currentView === "new-valuation" && "Crea una nueva valuación con inteligencia artificial"}
+            {currentView === "new-valuation" && "Crea una nueva valuación con IA"}
             {currentView === "properties" && "Gestiona tus propiedades registradas"}
             {currentView === "property-detail" && "Reporte detallado de la propiedad"}
             {currentView === "market-analysis" && "Tendencias y métricas del mercado"}

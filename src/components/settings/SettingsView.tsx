@@ -193,17 +193,17 @@ function PlanMetaRow({ icon: Icon, label, value }: { icon: React.ElementType; la
 
 // ── Main component ─────────────────────────────────────────────────────────────
 
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
 export function SettingsView() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [showApiKey, setShowApiKey] = useState(false);
   const [copied, setCopied] = useState(false);
   const [user, setUser] = useState<UserProfile>(demoUser);
   const [loading, setLoading] = useState(true);
-
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -239,7 +239,7 @@ export function SettingsView() {
       }
     };
     fetchData();
-  }, [supabase]);
+  }, []);
 
   const handleCopyKey = () => {
     navigator.clipboard.writeText("aequo_sk_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6");

@@ -96,12 +96,18 @@ export default function Home() {
 
   // If logged in, show the App
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <AppSidebar />
-      <div className={cn("transition-all duration-300", sidebarOpen ? "ml-64" : "ml-[70px]")}>
+    <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
+      <div className="hidden md:block">
+        <AppSidebar />
+      </div>
+      <div className={cn(
+        "transition-all duration-300 min-h-screen flex flex-col",
+        "ml-0 md:ml-[70px]",
+        sidebarOpen && "md:ml-64"
+      )}>
         <AppHeader />
-        <main className="p-6">
-          <div className="animate-fade-in">
+        <main className="flex-1 p-4 md:p-6 overflow-x-hidden">
+          <div className="animate-fade-in max-w-7xl mx-auto w-full">
             <ViewRenderer />
           </div>
         </main>
