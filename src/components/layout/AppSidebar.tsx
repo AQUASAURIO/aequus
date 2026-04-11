@@ -18,6 +18,7 @@ import { useState, useEffect } from "react";
 import { isSupabaseConnected } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 
 const navItems = [
@@ -114,7 +115,7 @@ export function AppSidebar() {
         </nav>
 
         {/* AI Assistant Button */}
-        <div className="px-3 pb-2">
+        <div className="px-3 pb-2 pt-2">
           <button
             onClick={toggleAiChat}
             className={cn(
@@ -124,15 +125,36 @@ export function AppSidebar() {
           >
             <div className="relative">
               <Sparkles className="h-5 w-5 shrink-0" />
-              <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-aequo-gold" />
+              <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
             </div>
             {sidebarOpen && (
               <div className="flex items-center justify-between w-full">
                 <span>Asistente IA</span>
-                <span className="text-[9px] uppercase tracking-wider text-sidebar-primary/60 font-medium">GPT-4o</span>
+                <span className="text-[9px] uppercase tracking-wider text-emerald-500 font-bold">Activo</span>
               </div>
             )}
           </button>
+
+          {/* Usage Meter */}
+          {sidebarOpen && (
+            <div className="mt-4 px-3 py-4 rounded-xl bg-sidebar-accent/30 border border-sidebar-border/50">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-sidebar-foreground/50">Créditos</span>
+                <span className="text-[10px] font-bold text-sidebar-primary">0 / 3</span>
+              </div>
+              <Progress value={100} className="h-1 bg-zinc-800" />
+              <p className="mt-2 text-[9px] text-destructive font-medium leading-tight">
+                Límite de créditos alcanzado.
+              </p>
+              <Button
+                variant="link"
+                className="h-auto p-0 text-[10px] text-emerald-500 hover:text-emerald-400 mt-1"
+                onClick={() => setCurrentView("settings")}
+              >
+                Actualizar plan
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Connection Status */}

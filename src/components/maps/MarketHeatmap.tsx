@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { MapContainer, TileLayer, Circle, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import { RotateCcw, Info, Satellite, Map, Mountain } from "lucide-react";
@@ -167,12 +167,19 @@ function getTransactionRadius(properties: number): number {
 
 function FitBoundsController({ trigger }: { trigger: number }) {
   const map = useMap();
-  if (trigger > 0) {
-    const bounds = L.latLngBounds(
-      marketZones.map((z) => L.latLng(z.lat, z.lng))
-    );
-    map.fitBounds(bounds, { padding: [50, 50], maxZoom: 7 });
-  }
+  const [hasInitialFit, setHasInitialFit] = useState(false);
+
+  useEffect(() => {
+    // Only fit bounds if explicitly triggered or for the very first time
+    if (trigger > 0 || !hasInitialFit) {
+      const bounds = L.latLngBounds(
+        marketZones.map((z) => L.latLng(z.lat, z.lng))
+      );
+      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 12 });
+      setHasInitialFit(true);
+    }
+  }, [trigger, map, hasInitialFit]);
+
   return null;
 }
 
@@ -260,7 +267,10 @@ export default function MarketHeatmap({
         center={RD_CENTER}
         zoom={8}
         className="h-full w-full"
-        zoomControl={false}
+        zoomControl={true}
+        scrollWheelZoom={true}
+        touchZoom={true}
+        doubleClickZoom={true}
       >
         <ActiveTileLayer layerId={tileLayer} />
 

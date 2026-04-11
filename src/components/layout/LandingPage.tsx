@@ -85,6 +85,7 @@ export function LandingPage({ onLogin }: LandingPageProps) {
                                 <Button
                                     size="lg"
                                     variant="outline"
+                                    onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
                                     className="w-full sm:w-auto h-14 px-8 text-lg font-bold rounded-2xl border-white/10 bg-white/5 hover:bg-white/10"
                                 >
                                     Ver Demo
@@ -181,6 +182,79 @@ export function LandingPage({ onLogin }: LandingPageProps) {
                 </div>
             </section>
 
+            {/* Pricing Section */}
+            <section id="pricing" className="py-24 border-t border-white/5 bg-zinc-950">
+                <div className="container mx-auto px-6">
+                    <div className="text-center mb-16">
+                        <h2 className="text-3xl md:text-5xl font-bold mb-4">Planes para cada necesidad</h2>
+                        <p className="text-zinc-500">Escala tu capacidad de análisis con nuestras opciones flexibles.</p>
+                    </div>
+
+                    <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                        {[
+                            {
+                                name: "Gratuito",
+                                price: "$0",
+                                desc: "Para peritos independientes en sus inicios.",
+                                features: ["3 Valuaciones/mes", "Análisis IA básico", "Mapa interactivo", "Soporte comunitario"],
+                                cta: "Comenzar Gratis",
+                                popular: false
+                            },
+                            {
+                                name: "Profesional",
+                                price: "$49",
+                                desc: "La herramienta definitiva para el día a día.",
+                                features: ["Valuaciones ilimitadas", "Análisis IA avanzado", "Reportes PDF marca blanca", "Soporte prioritario"],
+                                cta: "Seleccionar Pro",
+                                popular: true
+                            },
+                            {
+                                name: "Corporativo",
+                                price: "Custom",
+                                desc: "Soluciones a medida para grandes firmas.",
+                                features: ["Multi-inquilino", "API de Valuación", "Entrenamiento de modelo", "Soporte 24/7"],
+                                cta: "Contactar Ventas",
+                                popular: false
+                            }
+                        ].map((plan, i) => (
+                            <div
+                                key={i}
+                                className={`relative p-8 rounded-[32px] border ${plan.popular ? 'border-emerald-500 bg-emerald-500/5' : 'border-white/5 bg-zinc-900/50'} flex flex-col`}
+                            >
+                                {plan.popular && (
+                                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-widest px-4 py-1.5 rounded-full">
+                                        Más Popular
+                                    </div>
+                                )}
+                                <div className="mb-8">
+                                    <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
+                                    <div className="flex items-baseline gap-1 mb-4">
+                                        <span className="text-4xl font-extrabold">{plan.price}</span>
+                                        {plan.price !== "Custom" && <span className="text-zinc-500 text-sm">/mes</span>}
+                                    </div>
+                                    <p className="text-zinc-500 text-sm leading-relaxed">{plan.desc}</p>
+                                </div>
+                                <div className="space-y-4 mb-10 flex-grow">
+                                    {plan.features.map((f, j) => (
+                                        <div key={j} className="flex items-center gap-3 text-sm text-zinc-300">
+                                            <CheckCircle2 className="h-4 w-4 text-emerald-500 flex-shrink-0" />
+                                            {f}
+                                        </div>
+                                    ))}
+                                </div>
+                                <Button
+                                    onClick={onLogin}
+                                    variant={plan.popular ? "default" : "outline"}
+                                    className={`w-full h-12 rounded-xl font-bold ${plan.popular ? 'bg-emerald-600 hover:bg-emerald-500' : 'border-white/10 hover:bg-white/5'}`}
+                                >
+                                    {plan.cta}
+                                </Button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
             {/* CTA Section */}
             <section className="py-24">
                 <div className="container mx-auto px-6">
@@ -207,14 +281,18 @@ export function LandingPage({ onLogin }: LandingPageProps) {
             {/* Footer */}
             <footer className="py-12 border-t border-white/5 px-6">
                 <div className="container mx-auto flex flex-col md:flex-row items-center justify-between gap-8 text-zinc-500 text-sm">
-                    <div className="flex items-center gap-2">
-                        <span className="text-white font-bold">ÆQUO</span>
-                        <span>© 2026. Todos los derechos reservados.</span>
+                    <div className="flex flex-col items-center md:items-start gap-1">
+                        <div className="flex items-center gap-2">
+                            <span className="text-white font-bold">ÆQUO</span>
+                            <span>© 2026. Todos los derechos reservados.</span>
+                        </div>
+                        <p className="text-[10px] opacity-70">Desarrollado con precisión por <span className="text-emerald-500 font-medium">Minzar</span></p>
                     </div>
                     <div className="flex items-center gap-8">
-                        <a href="#" className="hover:text-white">Privacidad</a>
-                        <a href="#" className="hover:text-white">Términos</a>
-                        <a href="#" className="hover:text-white">Contacto</a>
+                        <a href="#pricing" className="hover:text-white transition-colors">Planes</a>
+                        <a href="#" className="hover:text-white transition-colors">Privacidad</a>
+                        <a href="#" className="hover:text-white transition-colors">Términos</a>
+                        <a href="mailto:soporte@minzar.io" className="hover:text-white transition-colors">Contacto</a>
                     </div>
                 </div>
             </footer>

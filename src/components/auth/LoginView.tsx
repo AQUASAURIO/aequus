@@ -16,6 +16,7 @@ export function LoginView() {
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [isSignUp, setIsSignUp] = useState(false);
+    const [teamCode, setTeamCode] = useState("");
     const supabase = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -150,6 +151,30 @@ export function LoginView() {
                                     />
                                 </div>
                             </div>
+                            <AnimatePresence>
+                                {isSignUp && (
+                                    <motion.div
+                                        initial={{ opacity: 0, height: 0 }}
+                                        animate={{ opacity: 1, height: "auto" }}
+                                        exit={{ opacity: 0, height: 0 }}
+                                        className="space-y-2 overflow-hidden"
+                                    >
+                                        <Label htmlFor="teamCode" className="text-zinc-300">Código de Invitación (Opcional)</Label>
+                                        <div className="relative group">
+                                            <Building2 className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500 group-focus-within:text-emerald-500 transition-colors" />
+                                            <Input
+                                                id="teamCode"
+                                                placeholder="ABC-123-XYZ"
+                                                value={teamCode}
+                                                onChange={(e) => setTeamCode(e.target.value.toUpperCase())}
+                                                className="pl-10 h-11 bg-zinc-950/50 border-white/10 text-white placeholder:text-zinc-600 focus:border-emerald-500/50 focus:ring-emerald-500/20 transition-all rounded-xl font-mono uppercase"
+                                            />
+                                        </div>
+                                        <p className="text-[10px] text-zinc-500 mt-1 pb-2">Usa esto si tu empresa ya tiene un espacio en Æquo.</p>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+
                             <Button type="submit" className="w-full group" disabled={loading}>
                                 {loading ? (
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

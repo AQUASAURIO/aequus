@@ -2,7 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "standalone",
-  /* config options here */
+  // @ts-ignore - Next.js 16 requires this to silence webpack conflict error
+  turbopack: {},
   typescript: {
     ignoreBuildErrors: true,
   },
