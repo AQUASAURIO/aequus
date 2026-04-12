@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase-client";
 import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { Bell, Search, Menu, Sparkles, LogOut, User, Activity, Building2, Info, Check } from "lucide-react";
@@ -46,10 +46,7 @@ export function AppHeader() {
   // No local user state needed anymore
 
   const handleLogout = async () => {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
+    // Use imported singleton
     await supabase.auth.signOut();
     window.location.href = "/";
   };

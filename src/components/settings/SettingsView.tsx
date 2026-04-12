@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase-client";
 import { formatCurrency } from "@/lib/types";
 import type { Plan, UserProfile, UserRole } from "@/lib/types";
 import { userRoleLabels } from "@/lib/types";
@@ -155,10 +155,6 @@ function PlanMetaRow({ icon: Icon, label, value }: { icon: React.ElementType; la
 
 // ── Main component ─────────────────────────────────────────────────────────────
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 export function SettingsView() {
   const { user: storeUser, isAdmin, updateUserProfile } = useAppStore();
