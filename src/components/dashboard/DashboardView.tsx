@@ -68,11 +68,11 @@ export function DashboardView() {
   const { navigateToProperty, setCurrentView } = useAppStore();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const mounted = useSyncExternalStore(
-    () => () => { },
-    () => true,
-    () => false
-  );
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (mounted) {

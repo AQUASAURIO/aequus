@@ -9,8 +9,8 @@ import {
     ShieldCheck,
     ArrowRight,
     CheckCircle2,
-    PieChart,
-    LineChart,
+    Activity,
+    TrendingUp,
     Globe
 } from "lucide-react";
 import Image from "next/image";
@@ -104,7 +104,7 @@ export function LandingPage({ onLogin }: LandingPageProps) {
                         <div className="relative mx-auto max-w-5xl rounded-2xl border border-white/10 bg-zinc-900/50 p-2 shadow-2xl backdrop-blur-sm">
                             <div className="rounded-xl overflow-hidden border border-white/5 bg-zinc-950 aspect-[16/9] flex items-center justify-center relative">
                                 <div className="text-center p-8">
-                                    <PieChart className="h-16 w-16 text-emerald-500/20 mx-auto mb-4" />
+                                    <Activity className="h-16 w-16 text-emerald-500/20 mx-auto mb-4" />
                                     <p className="text-zinc-500 font-medium">Visualización de Dashboard en Tiempo Real</p>
                                 </div>
                                 {/* Floating UI Elements */}
@@ -161,7 +161,7 @@ export function LandingPage({ onLogin }: LandingPageProps) {
                                 desc: "Ubica visualmente cada propiedad y analiza su entorno geográfico con precisión."
                             },
                             {
-                                icon: LineChart,
+                                icon: TrendingUp,
                                 title: "Pronósticos Inmobiliarios",
                                 desc: "Entiende hacia dónde se dirige el mercado con nuestras proyecciones basadas en datos."
                             }
