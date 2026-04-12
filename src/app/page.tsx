@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
 import { useAppStore } from "@/lib/store";
 import type { UserProfile } from "@/lib/types";
 import { AppSidebar } from "@/components/layout/AppSidebar";
@@ -18,6 +17,7 @@ import { LoginView } from "@/components/auth/LoginView";
 import { LandingPage } from "@/components/layout/LandingPage";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { supabase } from "@/lib/supabase-client";
 
 function ViewRenderer() {
   const { currentView } = useAppStore();
@@ -40,11 +40,6 @@ function ViewRenderer() {
   }
 }
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
-
 export default function Home() {
   const { sidebarOpen, setUser, user: storeUser } = useAppStore();
   const [session, setSession] = useState<any>(null);
@@ -53,37 +48,41 @@ export default function Home() {
 
   useEffect(() => {
     const getSession = async () => {
-      const { data: { session: currentSession } } = await supabase.auth.getSession();
-      setSession(currentSession);
+      try {
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        setSession(currentSession);
 
-      if (currentSession?.user) {
-        // Fetch full profile from public.users
-        const { data: profile, error } = await supabase
-          .from("users")
-          .select("*, plan:plans(*)")
-          .eq("id", currentSession.user.id)
-          .single();
+        if (currentSession?.user) {
+          // Fetch full profile from public.users using maybeSingle to prevent crash if not found
+          const { data: profile, error } = await supabase
+            .from("users")
+            .select("*, plan:plans(*)")
+            .eq("id", currentSession.user.id)
+            .maybeSingle();
 
-        if (profile) {
-          setUser(profile as UserProfile);
+          if (profile && !error) {
+            setUser(profile as UserProfile);
+          } else {
+            // Fallback if profile doesn't exist yet (e.g. first login before trigger)
+            setUser({
+              id: currentSession.user.id,
+              email: currentSession.user.email!,
+              name: currentSession.user.user_metadata?.full_name || currentSession.user.email!.split("@")[0],
+              role: "USER",
+              company: null,
+              valuationCount: 0,
+              isActive: true,
+              plan: null
+            });
+          }
         } else {
-          // Fallback if profile doesn't exist yet (e.g. first login before trigger)
-          setUser({
-            id: currentSession.user.id,
-            email: currentSession.user.email!,
-            name: currentSession.user.user_metadata?.full_name || currentSession.user.email!.split("@")[0],
-            role: "USER",
-            company: null,
-            valuationCount: 0,
-            isActive: true,
-            plan: null
-          });
+          setUser(null);
         }
-      } else {
-        setUser(null);
+      } catch (err) {
+        console.error("Critical error in getSession:", err);
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     };
 
     getSession();
@@ -93,7 +92,7 @@ export default function Home() {
     });
 
     return () => subscription.unsubscribe();
-  }, [supabase.auth]);
+  }, [setUser]);
 
   if (loading) {
     return (
